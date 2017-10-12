@@ -1,15 +1,48 @@
+# EQMVII-React-Express-Starter
+
+This is a starter for a simple express server connected to a React front end. The React app can be developed using the Create React App hot reloading dev server, then built and deployed for the backend server on Heroku. 
+
+# Startup, Development, and Deployment
+
+### Install dependencies
+
+Install/update Node.js and npm globally (find docs online)
+
+Navigate to project folder then run:
+
+$ npm install 
+
+### Start the backend: 
+
+$ npm start
+
+This will run server.js
+
+### Start the frontend w/ dev server: 
+
+$ npm run front
+
+This will allow hot reloading development of just the frontend, with proxied requests to the backend server (server.js). Use npm build (below) to create the production version which will be the face of the app when deployed to Heroku.
+
+### Create the production version of the app
+
+$ npm build
+
+This creates the production/built version of the code, which is server directly by the server. You can check it at port 3001 after running this command and before deploying to Heroku
+
+### Deploy to Heroku
+
+Install Heroku CLI and login
+
+$ heroku create
+
+$ git push heroku master
+
+$ heroku open
+
+_________
+
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
-
-It is...
-
-=== STARTUP AND DEVELOPMENT ===
-
-Start the backend: node server.js OR npm start
-
-Start the frontend w/ dev server: npm run front
-
-
-=== BEGIN CREATE REACT APP DOCS ===
 
 Below you will find some information on how to perform common tasks.<br>
 You can find the most recent version of this guide [here](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md).
