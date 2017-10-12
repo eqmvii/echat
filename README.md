@@ -4,9 +4,9 @@ It is...
 
 === STARTUP AND DEVELOPMENT ===
 
-Start the backend: node server.js
+Start the backend: node server.js OR npm start
 
-Start the frontend w/ dev server: npm start
+Start the frontend w/ dev server: npm run front
 
 
 === BEGIN CREATE REACT APP DOCS ===
