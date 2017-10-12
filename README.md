@@ -2,6 +2,12 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 It is...
 
+=== STARTUP AND DEVELOPMENT ===
+
+Start the backend: node server.js
+
+Start the frontend w/ dev server: npm start
+
 
 === BEGIN CREATE REACT APP DOCS ===
 

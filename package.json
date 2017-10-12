@@ -18,5 +18,6 @@
   "main": "server.js",
   "devDependencies": {},
   "author": "eqmvii",
-  "license": "ISC"
+  "license": "ISC",
+"proxy": "http://localhost:3001"
 }
