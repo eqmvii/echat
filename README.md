@@ -1,3 +1,13 @@
+# echat
+
+A simple React chat app powered by Node.js, Express, and PostgreSQL
+
+By eqmvii 
+
+____
+
+____
+
 # EQMVII-PRES
 
 Postgres / React / Express Starter
