@@ -36,20 +36,19 @@ class EntranceSplash extends Component {
         <h3>Welcome to echat! </h3>
         <br />
         <form onSubmit={this.props.handleLogin}>
-        <input type="text" value={this.props.nameInput} onChange={this.props.handleNameTyping}></input>
-        <br />
-        <br />
-        <button type="submit" className="btn btn-primary btn-large" >Enter echat</button>
-      </form>
+          <input
+            type="text"
+            value={this.props.nameInput}
+            onChange={this.props.handleNameTyping}
+            maxLength="20"
+
+          ></input>
+          <br />
+          <br />
+          <button type="submit" className="btn btn-primary btn-large" >Enter echat</button>
+        </form>
       </div>
     )
-  }
-}
-
-// Logout button for the chat, to return to the login screen
-class LogoutButton extends Component {
-  render() {
-    return (<button className="btn btn-danger">Logout</button>);
   }
 }
 
@@ -62,18 +61,40 @@ class ChatApp extends Component {
     // this.handleChange = this.handleChange.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
     this.handleNameTyping = this.handleNameTyping.bind(this);
+    this.handleChatTyping = this.handleChatTyping.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
+    this.handleChatSend = this.handleChatSend.bind(this);
 
-    this.state = { username: false, messages: [], nameInput: '' }
+    this.state = { username: false, messages: [], nameInput: '', chatInput: '' }
   }
 
-  handleNameTyping(event){
-    this.setState({nameInput: event.target.value})
+  handleNameTyping(event) {
+    this.setState({ nameInput: event.target.value })
   }
 
-  handleLogin (event) {
+  handleChatTyping(event) {
+    this.setState({ chatInput: event.target.value })
+  }
+
+  handleLogin(event) {
     event.preventDefault();
-    this.setState ({username: this.state.nameInput});
+    this.setState({ username: this.state.nameInput });
     dbv.log("Login pressed!");
+  }
+
+  handleLogout() {
+    this.setState({ username: false, nameInput: '' });
+    dbv.log("Logout pressed!");
+  }
+
+  handleChatSend(event) {
+    event.preventDefault();
+    // alert("Message to be sent: " + this.state.chatInput);
+    // copy the entire old state array of messages
+    let msgList = this.state.messages.slice();
+    msgList.push(this.state.chatInput);
+    this.setState({ messages: msgList, chatInput: '' })
+    dbv.log(msgList);
   }
 
   render() {
@@ -83,16 +104,25 @@ class ChatApp extends Component {
     if (this.state.username) {
       return (
         <div>
-          <ChatHeader />
-          <UserList users={this.state.username}/>
-          <Chatroom />
-          <ChatTextInput />
+          <ChatHeader handleLogout={this.handleLogout} />
+          <UserList users={this.state.username} />
+          <Chatroom messages={this.state.messages} />
+          <ChatTextInput
+            handleChatTyping={this.handleChatTyping}
+            handleChatSend={this.handleChatSend}
+            chatInput={this.state.chatInput}
+          />
         </div>
       )
 
     }
     // otherwise, by default, render the login component
-    return (<EntranceSplash handleLogin={this.handleLogin} handleNameTyping={this.handleNameTyping} nameInput={this.state.nameInput}/>);
+    return (
+      <EntranceSplash
+        handleLogin={this.handleLogin}
+        handleNameTyping={this.handleNameTyping}
+        nameInput={this.state.nameInput}
+      />);
   }
 
 }
@@ -101,7 +131,7 @@ class ChatHeader extends Component {
   render() {
     return (
       <div>
-        <h1>echat <LogoutButton /> </h1>
+        <h1>echat <button className="btn btn-danger" onClick={this.props.handleLogout}>Logout</button> </h1>
       </div>
     )
   }
@@ -120,20 +150,24 @@ class UserList extends Component {
 
 class Chatroom extends Component {
   render() {
+
+    // If no messages yet, render nothing
+    if (this.props.messages.length === 0) {
+      return (<div><br /><br /><br /></div>);
+    }
+
+    // tag and render the list of messages
+    // TODO: Make the key the messages unique key from the db
+    var messagesToDisplay = [];
+    for (let i = 0; i < this.props.messages.length; i++) {
+      let newMessage = (<li key={i}>{this.props.messages[i]}</li>);
+      messagesToDisplay.push(newMessage);
+    }
     return (
       <div>
-        <table>
-          <tbody>
-          <tr>
-            <td>
-              12:35pm
-            </td>
-            <td>
-              &lt;Eric&gt; This is the first fake message!
-            </td>
-          </tr>
-          </tbody>
-        </table>
+        <ul>
+          {messagesToDisplay}
+        </ul>
         <br />
       </div>
     )
@@ -144,7 +178,15 @@ class ChatTextInput extends Component {
   render() {
     return (
       <div>
-        <input type="text"></input><button className="btn btn-primary">Send msg</button>
+        <form onSubmit={this.props.handleChatSend}>
+          <input
+            type="text"
+            value={this.props.chatInput}
+            onChange={this.props.handleChatTyping}
+            maxLength="80"
+          ></input>
+          <button type="submit" className="btn btn-primary">Send</button>
+        </form>
       </div>
     )
   }
