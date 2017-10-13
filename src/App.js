@@ -21,12 +21,26 @@ if (dbv.logged_in) {
 
 // component to render the introduction / login screen
 class EntranceSplash extends Component {
+  constructor(props) {
+    super(props);
+    // bind handle functions
+    //this.handleSubmit = this.handleSubmit.bind(this);
+
+    this.state = { inputval: '' }
+  }
+
+
   render() {
     return (
-      <div>
-        <p>Hello! EntranceSplash rendered</p>
-        <input type="text"></input>
-        <button className="btn btn-primary">Enter!</button>
+      <div className="text-center">
+        <h3>Welcome to echat! </h3>
+        <br />
+        <form onSubmit={this.props.handleLogin}>
+        <input type="text" value={this.props.nameInput} onChange={this.props.handleNameTyping}></input>
+        <br />
+        <br />
+        <button type="submit" className="btn btn-primary btn-large" >Enter echat</button>
+      </form>
       </div>
     )
   }
@@ -46,19 +60,31 @@ class ChatApp extends Component {
     // bind handle functions
     // this.handleSubmit = this.handleSubmit.bind(this);
     // this.handleChange = this.handleChange.bind(this);
-    this.state = { username: false }
+    this.handleLogin = this.handleLogin.bind(this);
+    this.handleNameTyping = this.handleNameTyping.bind(this);
+
+    this.state = { username: false, messages: [], nameInput: '' }
+  }
+
+  handleNameTyping(event){
+    this.setState({nameInput: event.target.value})
+  }
+
+  handleLogin (event) {
+    event.preventDefault();
+    this.setState ({username: this.state.nameInput});
+    dbv.log("Login pressed!");
   }
 
   render() {
     // Conditional rendering fork: 
     // not logged in -> login screen
     // logged in -> chat application
-    if (dbv.logged_in) {
+    if (this.state.username) {
       return (
         <div>
-          <p className="text-center">Woah! You are logged in to the chat application!</p>
           <ChatHeader />
-          <UserList />
+          <UserList users={this.state.username}/>
           <Chatroom />
           <ChatTextInput />
         </div>
@@ -66,13 +92,9 @@ class ChatApp extends Component {
 
     }
     // otherwise, by default, render the login component
-    return (
-      <div>
-        <EntranceSplash />
-
-      </div>
-    )
+    return (<EntranceSplash handleLogin={this.handleLogin} handleNameTyping={this.handleNameTyping} nameInput={this.state.nameInput}/>);
   }
+
 }
 
 class ChatHeader extends Component {
@@ -89,7 +111,7 @@ class UserList extends Component {
   render() {
     return (
       <div>
-        <div className="alert alert-success"><strong>Hello</strong>I am the UserList </div>
+        <div className="alert alert-success"><strong>Current users: </strong>{this.props.users}</div>
         <br />
       </div>
     )
@@ -101,6 +123,7 @@ class Chatroom extends Component {
     return (
       <div>
         <table>
+          <tbody>
           <tr>
             <td>
               12:35pm
@@ -109,6 +132,7 @@ class Chatroom extends Component {
               &lt;Eric&gt; This is the first fake message!
             </td>
           </tr>
+          </tbody>
         </table>
         <br />
       </div>
@@ -147,7 +171,7 @@ class App extends Component {
         }
       })
       .then(function (res) {
-        console.log(res);
+        dbv.log(res);
         that.setState({ data: res });
       })
   }
@@ -157,7 +181,7 @@ class App extends Component {
       <div className="container">
         <div className="row">
 
-          <div className="col-xs-2">Left gutter</div>
+          <div className="col-xs-2"><br /><br /><br />Left gutter</div>
           <div className="col-xs-8">
             <br />
             <ChatApp />
@@ -167,7 +191,7 @@ class App extends Component {
             <p className="text-center">Server response: {this.state.data} </p>
           </div>
 
-          <div className="col-xs-2">Right gutter</div>
+          <div className="col-xs-2"><br /><br /><br />Right gutter</div>
 
         </div>
         <div className="row">
