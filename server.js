@@ -3,8 +3,8 @@ const app = express()
 const { Client } = require('pg')
 
 // Database connection code
-var client;
 
+var client;
 // set credentials based on local or production
 if (!process.env.PORT) {
     client = new Client({
@@ -22,13 +22,12 @@ if (!process.env.PORT) {
         ssl: true,
     });
 
-    // establish connection between server.js and PostgreSQL server
     client.connect();
-
     // test the remote connection 
     client.query('SELECT table_schema,table_name FROM information_schema.tables;', (err, res) => {
         if (err) throw err;
         for (let row of res.rows) {
+            console.log("Row read from PostgreSQL general info: ");
             console.log(JSON.stringify(row));
         }
     });
@@ -40,6 +39,7 @@ client.query('SELECT * FROM test_table;', (err, res) => {
     if (err) throw err;
     console.log("Read succeeded; rows: ");
     for (let row of res.rows) {
+        console.log("Row read from PostgreSQL table: ");
         console.log(JSON.stringify(row));
     }
 });
@@ -49,7 +49,7 @@ client.query('SELECT * FROM test_table;', (err, res) => {
 const port = process.env.PORT || 3001;
 
 // express looks up files relative to the static directory,
-// so it doesn't become part of the url
+// so the folder name doesn't become part of the url
 app.use(express.static('build'));
 
 // API endpoint for testing

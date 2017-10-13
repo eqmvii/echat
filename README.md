@@ -6,7 +6,11 @@ This is a starter for a simple express server connected to a React front end pre
 
 The React front end can be developed using the Create React App hot reloading dev server, then built and deployed and served from the backend server for deployment on Heroku. 
 
-# Startup, Development, and Deployment
+# Startup, and Deployment
+
+### Install everything before you run anything! 
+
+You've got to get PostgreSQL setup locally and on the cloud, or errors will fly off everywhere. 
 
 ### Install dependencies:
 
@@ -15,28 +19,6 @@ Install/update Node.js and npm globally (find docs online)
 Navigate to project folder then run:
 
 $ npm install 
-
-### Start the backend:
-
-$ npm start
-
-This will run server.js
-
-You'll have to run this in a separate terminal (ctrl + alt + t) from the terminal you use to run the Create React App hot reloading front end.
-
-The server is responsible for both being the backend for your app's API requests and for serving the production/built version of your app on heroku.
-
-### Start the frontend w/ dev server: 
-
-$ npm run front
-
-This will allow hot reloading development of just the frontend, with proxied requests to the backend server (server.js). Use npm build (below) to create the production version which will be the face of the app when deployed to Heroku.
-
-### Create the production version of the app:
-
-$ npm build
-
-This creates the production/built version of the code, which is server directly by the server. You can check it at port 3001 after running this command and before deploying to Heroku
 
 ### Deploy to Heroku:
 
@@ -87,7 +69,7 @@ Now it's time to hook the database up to the app. Start up postgres:
 
 $ sudo -u postgres psql
 
-[Note: you may need to add a password here that matches the server.js file]
+[Note: you may need to add a password here that matches the server.js file, immediately after logging in just use \password to set it]
 
 Create the table used for this app:
 
@@ -110,6 +92,43 @@ Leave the psql instance you're using via Heroku:
 
 $ \q
 
+# Development
+
+### Start the backend:
+
+$ npm start
+
+This will run server.js
+
+You'll have to run this in a separate terminal (ctrl + alt + t) from the terminal you use to run the Create React App hot reloading front end.
+
+The server is responsible for both being the backend for your app's API requests and for serving the production/built version of your app on heroku.
+
+### Start the frontend w/ dev server: 
+
+$ npm run front
+
+This will allow hot reloading development of just the frontend, with proxied requests to the backend server (server.js). Use npm build (below) to create the production version which will be the face of the app when deployed to Heroku.
+
+### Create the production version of the app:
+
+$ npm build
+
+This creates the production/built version of the code, which is server directly by the server. You can check it at port 3001 after running this command and before deploying to Heroku
+
+### Re-deploy as you develop:
+
+$ git add *
+
+$ git commit -m "commit message"
+
+$ git push -u origin master
+
+$ git push heroku master
+
+$ heroku open
+
+_________
 
 _________
 
