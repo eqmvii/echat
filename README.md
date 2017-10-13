@@ -1,6 +1,10 @@
-# EQMVII-React-Express-Starter
+# EQMVII-PRES
 
-This is a starter for a simple express server connected to a React front end prepped for Heroku deployment. The React front end can be developed using the Create React App hot reloading dev server, then built and deployed and served from the backend server for deployment on Heroku. 
+Postgres / React / Express Starter
+
+This is a starter for a simple express server connected to a React front end prepped for Heroku deployment. It is also hooked up to a postgres DB and includes instructions for getting that working locally and with heroku. 
+
+The React front end can be developed using the Create React App hot reloading dev server, then built and deployed and served from the backend server for deployment on Heroku. 
 
 # Startup, Development, and Deployment
 
@@ -43,6 +47,69 @@ $ heroku create
 $ git push heroku master
 
 $ heroku open
+
+### Install PostgreSQL on your local system:
+
+This is necessary for the following steps to work. Read the docs, do.
+
+### Provision your Heroku PostgreSQL database:
+
+$ heroku addons:create heroku-postgresql:hobby-dev
+
+Read what it tells you it did, for example: created postgresql-shaped-71170 as DATABASE_URL
+
+$ heroku pg:psql
+
+Create the table used for this app:
+
+CREATE TABLE test_table (
+  id SERIAL PRIMARY KEY,
+  name varchar(60) NOT NULL
+);
+
+Add two pieces of dummy data to that table:
+
+INSERT INTO test_table (name) VALUES ('This data read from PostgreSQL table test_table');
+
+INSERT INTO test_table (name) VALUES ('As was this data.');
+
+Test with:
+
+SELECT * FROM test_table;
+
+Leave the psql instance you're using via Heroku: 
+
+$ \q
+
+### Create the local PostgreSQL database:
+
+Now it's time to hook the database up to the app. Start up postgres: 
+
+$ sudo -u postgres psql
+
+[Note: you may need to add a password here that matches the server.js file]
+
+Create the table used for this app:
+
+CREATE TABLE test_table (
+  id SERIAL PRIMARY KEY,
+  name varchar(60) NOT NULL
+);
+
+Add two pieces of dummy data to that table:
+
+INSERT INTO test_table (name) VALUES ('This data read from PostgreSQL table test_table');
+
+INSERT INTO test_table (name) VALUES ('As was this data.');
+
+Test with:
+
+SELECT * FROM test_table;
+
+Leave the psql instance you're using via Heroku: 
+
+$ \q
+
 
 _________
 

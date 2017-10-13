@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "express": "^4.16.2",
+    "pg": "^7.3.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-scripts": "1.0.14"
@@ -19,5 +20,5 @@
   "devDependencies": {},
   "author": "eqmvii",
   "license": "ISC",
-"proxy": "http://localhost:3001"
+  "proxy": "http://localhost:3001"
 }
