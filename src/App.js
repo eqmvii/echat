@@ -80,6 +80,10 @@ class ChatApp extends Component {
     event.preventDefault();
     this.setState({ username: this.state.nameInput });
     dbv.log("Login pressed!");
+
+    // send login info to the backend server
+    fetch('/login', { method: "POST", body: JSON.stringify(this.state.nameInput) })
+      .then(res => { res.json(); console.log(res); });
   }
 
   handleLogout() {

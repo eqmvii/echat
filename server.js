@@ -35,7 +35,7 @@ if (!process.env.PORT) {
 }
 
 // test read of the database, local or production
-client.query('SELECT * FROM test_table;', (err, res) => {
+client.query('SELECT * FROM echat_messages', (err, res) => {
     if (err) throw err;
     console.log("Read succeeded; rows: ");
     for (let row of res.rows) {
@@ -59,6 +59,39 @@ app.get('/test', function (req, res) {
         if (err) throw err;
         res.json(response.rows[0].name);
     });
+});
+
+// login endpoint
+app.post('/login', function (req, res) {
+    console.log("Login requested");
+    // clear the old user table   
+    // TODO: Make this not insane for multiple users.
+    client.query('DELETE FROM echat_users', (err, data) => {
+        console.log("Deleted the messages table.");
+    });
+
+    // parse the body of the POST request
+    // node.js boiilterplate for handling 
+    // a body stream from the PUT request
+    let body = [];
+    req.on('data', (chunk) => {
+        body.push(chunk);
+    }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        // at this point, `body` has the entire request body stored in it as a string
+        console.log("Login POST request body is: " + body);
+
+        // Add the new user to the username table
+        let query_string = "INSERT INTO echat_users (username) VALUES ($1)";
+        let values = [body];
+        console.log("It's query time! Query string / values: ");
+        console.log(query_string);
+        console.log(values);
+        client.query(query_string, values, (err, data) => {
+            // console.log(err);
+        });
+    });
+
 });
 
 // Start up the server:
