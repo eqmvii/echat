@@ -94,6 +94,37 @@ app.post('/login', function (req, res) {
 
 });
 
+// post message endpoint
+app.post('/postmessage', function (req, res) {
+    console.log("Add message requested");
+    // clear the old user table   
+
+    // parse the body of the POST request
+    // node.js boiilterplate for handling 
+    // a body stream from the PUT request
+    let body = [];
+    req.on('data', (chunk) => {
+        body.push(chunk);
+    }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        // at this point, `body` has the entire request body stored in it as a string
+        console.log("Message POST request body is: " + body);
+        body = JSON.parse(body);
+
+        // Add the new user to the username table
+        let query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
+        let values = [body.username, body.message];
+        console.log("It's query time! Query string / values: ");
+        console.log(query_string);
+        console.log(values);
+        client.query(query_string, values, (err, data) => {
+            // console.log(err);
+        });
+    });
+
+});
+
+
 // Start up the server:
 app.listen(port, function () {
     console.log('App up and listening on port ' + port + '!')

@@ -84,7 +84,7 @@ class ChatApp extends Component {
     sessionStorage.setItem('username', this.state.nameInput);
     // send login info to the backend server
     fetch('/login', { method: "POST", body: JSON.stringify(this.state.nameInput) })
-      .then(res => { res.json(); console.log(res); });
+      .then(res => { res.json(); dbv.log(res); });
     
   }
 
@@ -103,6 +103,9 @@ class ChatApp extends Component {
     msgList.push(this.state.chatInput);
     this.setState({ messages: msgList, chatInput: '' })
     dbv.log(msgList);
+      // send posted message info to the backend server
+      fetch('/postmessage', { method: "POST", body: JSON.stringify({message: this.state.chatInput, username: this.state.username}) })
+      .then(res => { res.json(); dbv.log(res); });
   }
 
   componentWillMount() {
@@ -207,7 +210,7 @@ class Chatroom extends Component {
       }
       else {
         //newMessage = (<div key={i}>| {message_list[i]}</div>);
-        newMessage = (<br />);
+        newMessage = (<br key={i}/>);
       }
       
       // dbv.log(newMessage);
