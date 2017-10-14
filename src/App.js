@@ -66,6 +66,7 @@ class ChatApp extends Component {
     this.handleChatSend = this.handleChatSend.bind(this);
 
     this.state = { username: false, messages: [], nameInput: '', chatInput: '' }
+    
   }
 
   handleNameTyping(event) {
@@ -80,14 +81,17 @@ class ChatApp extends Component {
     event.preventDefault();
     this.setState({ username: this.state.nameInput });
     dbv.log("Login pressed!");
-
+    sessionStorage.setItem('username', this.state.nameInput);
     // send login info to the backend server
     fetch('/login', { method: "POST", body: JSON.stringify(this.state.nameInput) })
       .then(res => { res.json(); console.log(res); });
+    
   }
 
   handleLogout() {
     this.setState({ username: false, nameInput: '' });
+    sessionStorage.removeItem('username');
+    // TODO: Send logout message to the server
     dbv.log("Logout pressed!");
   }
 
@@ -101,6 +105,16 @@ class ChatApp extends Component {
     dbv.log(msgList);
   }
 
+  componentWillMount() {
+    // Check to see if user already logged in
+    var stored_username = sessionStorage.getItem('username');
+    dbv.log("Session username stored as: ");
+    dbv.log(stored_username);
+    if (stored_username) {
+      this.setState( {username: stored_username} );
+    }
+  }
+
   render() {
     // Conditional rendering fork: 
     // not logged in -> login screen
@@ -108,7 +122,10 @@ class ChatApp extends Component {
     if (this.state.username) {
       return (
         <div>
-          <ChatHeader handleLogout={this.handleLogout} />
+          <ChatHeader 
+            handleLogout={this.handleLogout} 
+            user={this.state.username}
+          />
           <UserList users={this.state.username} />
           <Chatroom messages={this.state.messages} />
           <ChatTextInput
@@ -135,7 +152,7 @@ class ChatHeader extends Component {
   render() {
     return (
       <div>
-        <h1>echat <button className="btn btn-danger" onClick={this.props.handleLogout}>Logout</button> </h1>
+        <h1>Welcome to echat, {this.props.user}! <button className="btn btn-danger pull-right" onClick={this.props.handleLogout}>Logout</button> </h1>
       </div>
     )
   }
@@ -154,24 +171,53 @@ class UserList extends Component {
 
 class Chatroom extends Component {
   render() {
+    var max_messages = 4;
+    // dbv.log(this.props.messages.length);
+    // dbv.log(this.props.messages);
+    dbv.log("Padding: ");
+    var padding = max_messages - this.props.messages.length;
+    dbv.log(padding);
+    var message_list = this.props.messages.slice();
 
     // If no messages yet, render nothing
-    if (this.props.messages.length === 0) {
-      return (<div><br /><br /><br /></div>);
+    if (this.props.messages.length < max_messages) {
+      // return (<div><br /><br /><br /></div>);
+      for (let i = 0; i < padding; i++) {
+        message_list.push('');
+      }
     }
+
+    // truncate!
+    var truncate = this.props.messages.length - max_messages;
+    if (this.props.messages.length > max_messages ){
+      for (let i = 0; i < truncate; i++){
+        message_list.shift();
+      }
+
+    }
+
 
     // tag and render the list of messages
     // TODO: Make the key the messages unique key from the db
     var messagesToDisplay = [];
-    for (let i = 0; i < this.props.messages.length; i++) {
-      let newMessage = (<li key={i}>{this.props.messages[i]}</li>);
+    var newMessage;
+    for (let i = 0; i < message_list.length; i++) {
+      if (message_list[i]) {
+        newMessage = (<div key={i}>&#60;{sessionStorage.getItem('username')}&#62; {message_list[i]}</div>);
+      }
+      else {
+        //newMessage = (<div key={i}>| {message_list[i]}</div>);
+        newMessage = (<br />);
+      }
+      
+      // dbv.log(newMessage);
       messagesToDisplay.push(newMessage);
     }
     return (
       <div>
-        <ul>
+        
           {messagesToDisplay}
-        </ul>
+        
         <br />
       </div>
     )
@@ -227,7 +273,7 @@ class App extends Component {
       <div className="container">
         <div className="row">
 
-          <div className="col-xs-2"><br /><br /><br />Left gutter</div>
+          <div className="col-xs-2"></div>
           <div className="col-xs-8">
             <br />
             <ChatApp />
@@ -237,7 +283,7 @@ class App extends Component {
             <p className="text-center">Server response: {this.state.data} </p>
           </div>
 
-          <div className="col-xs-2"><br /><br /><br />Right gutter</div>
+          <div className="col-xs-2"></div>
 
         </div>
         <div className="row">
@@ -245,7 +291,7 @@ class App extends Component {
           <div className="col-xs-2"></div>
 
           <div className="col-xs-8">
-            Made by <a href="https://github.com/eqmvii">eqmvii</a>
+            <p className="text-center">Made by <a href="https://github.com/eqmvii">eqmvii</a></p>
           </div>
 
           <div className="col-xs-2"></div>
