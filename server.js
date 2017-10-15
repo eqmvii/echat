@@ -5,6 +5,8 @@ const { Client } = require('pg')
 // Database connection code
 
 var client;
+var server_max_id = 0;
+
 // set credentials based on local or production
 if (!process.env.PORT) {
     client = new Client({
@@ -66,11 +68,25 @@ app.get('/test', function (req, res) {
 // API endpoint for testing
 app.get('/getmessages', function (req, res) {
     // console.log("Get messages endpoint hit");
+    // console.log(req.query);
+    var max_id = req.query.max_id;
+    // console.log("React max: " + max_id + " Server max: " + server_max_id);
+    if (max_id == server_max_id){
+        // console.log("React matches server, send nothing");
+        res.json([]);
+    }
+    else {
+        console.log("React is behind, send update!");
     client.query('SELECT * FROM echat_messages ORDER BY stamp desc LIMIT 20', (err, response) => {
+        // console.log("Max: " + response.rows[0].id);
+        // console.log("Min: " + response.rows[response.rows.length - 1].id);
+        if (response.rows.length > 0){
+            server_max_id = response.rows[0].id;
+        }
         if (err) throw err;
         res.json(response.rows);
 
-    });
+    });}
 });
 
 // API endpoint for testing
@@ -115,13 +131,14 @@ app.post('/login', function (req, res) {
         console.log(query_string);
         console.log(values);
         client.query(query_string, values, (err, data) => {
+            //console.log("wurt");
             if (err) {
                 console.log(err);
             }
-            res.json("ok all is good thank you");
+            res.end();
         });
     });
-    
+
 
 });
 
@@ -143,20 +160,23 @@ app.post('/postmessage', function (req, res) {
         body = JSON.parse(body);
 
         // Add the new user to the username table
-        let query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
+        let query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2) RETURNING id";
         let values = [body.username, body.message];
         console.log("It's query time! Query string / values: ");
         console.log(query_string);
         console.log(values);
         client.query(query_string, values, (err, data) => {
-            if(err){
+            if (err) {
                 console.log(err);
             };
-            res.json("ok all is good thank you");
+            // console.log("msg post data: ");
+            // console.log(data.rows[0].id);
+            server_max_id = data.rows[0].id;
+            res.end();
         });
     });
 
-    
+
 });
 
 
@@ -179,7 +199,7 @@ app.post('/logout', function (req, res) {
         // at this point, `body` has the entire request body stored in it as a string
         body = JSON.parse(body);
         console.log("logout POST request body is: " + body.username);
-        
+
 
         // Add the new user to the username table
         let query_string = "DELETE FROM echat_users WHERE username = $1";
@@ -188,14 +208,14 @@ app.post('/logout', function (req, res) {
         console.log(query_string);
         console.log(values);
         client.query(query_string, values, (err, data) => {
-            if(err){
+            if (err) {
                 console.log(err);
             };
             res.json("ok all is good thank you");
         });
     });
 
-    
+
 });
 
 

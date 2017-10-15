@@ -5,7 +5,7 @@ import './App.css';
 // Use dbv.log for all logging, and 
 var dbv = {
   refresh_rate: 200,
-  dbm: true,
+  dbm: false,
   logged_in: false,
   username: "Eric",
   log: function (message) {
@@ -41,7 +41,7 @@ class EntranceSplash extends Component {
             type="text"
             value={this.props.nameInput}
             onChange={this.props.handleNameTyping}
-            maxLength="20"
+            maxLength="12"
 
           ></input>
           <br />
@@ -84,8 +84,7 @@ class ChatApp extends Component {
     dbv.log("Login pressed!");
     sessionStorage.setItem('username', this.state.nameInput);
     // send login info to the backend server
-    fetch('/login', { method: "POST", body: JSON.stringify({username: this.state.nameInput}) })
-      .then(res => { res.json(); dbv.log(res); });
+    fetch('/login', { method: "POST", body: JSON.stringify({username: this.state.nameInput}) });
 
   }
 
@@ -122,7 +121,7 @@ class ChatApp extends Component {
 
     // send posted message info to the backend server
     fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
-      .then(res => { res.json(); dbv.log(res); this.setState({ chatInput: '' }) });
+      .then(() => (this.setState({ chatInput: '' }) ));
 
     
 
@@ -139,19 +138,23 @@ class ChatApp extends Component {
   }
 
   refresh() {
-    dbv.log("Tick...");
+    //dbv.log("Tick...");
     // get recipe data from the server asynchronously, state will refresh when it lands
-    fetch('/getmessages')
+    var refresh_route = '/getmessages?max_id=';
+    refresh_route += this.state.max_id;
+    fetch(refresh_route)
       .then(res => res.json())
       //.then(res => { console.log(res); this.setState({ data: res }) })
       .then(res => {
         // dbv.log(res[0]);
         if (res.length > 0){
           var max_id = res[0].id;
+          this.setState({ messages: res.reverse(), max_id: max_id });
         }
-        else { max_id = 0; }
         // dbv.log("Max id is: " + max_id);
-        this.setState({ messages: res.reverse(), max_id: max_id });
+        else {
+          dbv.log("No new messages from the server");
+        }
       });
     //.then(() => console.log(this.state));
 
@@ -315,7 +318,7 @@ class ChatTextInput extends Component {
 }
 
 
-// stateless container component for the entire application
+// container component for the entire application
 class App extends Component {
   constructor(props) {
     super(props); // required in the constructor of a React component
@@ -350,9 +353,6 @@ class App extends Component {
             <br />
             <ChatApp />
             <br />
-            <br />
-            <p className="text-center">Hello, world! React is rendering this JSX code.</p>
-            <p className="text-center">Server response: {this.state.data} </p>
           </div>
 
           <div className="col-xs-2"></div>
@@ -363,7 +363,7 @@ class App extends Component {
           <div className="col-xs-2"></div>
 
           <div className="col-xs-8">
-            <p className="text-center">Made by <a href="https://github.com/eqmvii">eqmvii</a></p>
+            <p className="text-center">Made by <a href="https://github.com/eqmvii">eqmvii</a>. Server test: {this.state.data}.</p>
           </div>
 
           <div className="col-xs-2"></div>
