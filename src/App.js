@@ -5,7 +5,7 @@ import './App.css';
 // Use dbv.log for all logging, and 
 var dbv = {
   refresh_rate: 200,
-  dbm: false,
+  dbm: true,
   logged_in: false,
   username: "Eric",
   log: function (message) {
@@ -66,7 +66,7 @@ class ChatApp extends Component {
     this.handleLogout = this.handleLogout.bind(this);
     this.handleChatSend = this.handleChatSend.bind(this);
 
-    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [] }
+    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false }
 
   }
 
@@ -80,7 +80,7 @@ class ChatApp extends Component {
 
   handleLogin(event) {
     event.preventDefault();
-    this.setState({ username: this.state.nameInput });
+    this.setState({ username: this.state.nameInput, logged_in: true, max_id: 0 });
     dbv.log("Login pressed!");
     sessionStorage.setItem('username', this.state.nameInput);
     // send login info to the backend server
@@ -95,15 +95,15 @@ class ChatApp extends Component {
     fetch('/logout', { method: "POST", body: JSON.stringify({ username: delete_name }) })
      .then(res => { res.json(); dbv.log(res); });
 
-    this.setState({ username: false, nameInput: '' });
+    this.setState({ username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false });
+    
     sessionStorage.removeItem('username');
-    // TODO: Send logout message to the server
     dbv.log("Logout pressed!");
   }
 
   handleChatSend(event) {
     event.preventDefault();
-    dbv.log("handleChatSend was called!");
+    // dbv.log("handleChatSend was called!");
     dbv.log(this.state.chatInput);
     let message = this.state.chatInput;
     let username = this.state.username;
@@ -133,11 +133,17 @@ class ChatApp extends Component {
     dbv.log("Session username stored as: ");
     dbv.log(stored_username);
     if (stored_username) {
-      this.setState({ username: stored_username });
+      this.setState({ username: stored_username, logged_in: true, max_id: 0 });
     }
   }
 
   refresh() {
+    // Don't fetch messages if not logged in
+    if(!this.state.logged_in){
+      console.log("Not logged in not getting data HMPH");
+      console.log(this.state.logged_in);
+      return;
+    }
     //dbv.log("Tick...");
     // get recipe data from the server asynchronously, state will refresh when it lands
     var refresh_route = '/getmessages?max_id=';
