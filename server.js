@@ -5,7 +5,7 @@ const { Client } = require('pg')
 // Database connection code
 
 var client;
-var server_max_id = 0;
+var server_max_id = -1;
 
 // set credentials based on local or production
 if (!process.env.PORT) {
@@ -218,6 +218,10 @@ app.post('/logout', function (req, res) {
 
 });
 
+// TODO: Cleanup function
+// Logout a user who hasn't sent a message in 10 minutes
+
+// TODO: Investigate using sessions for logging in (maybe for the next app?)
 
 // Start up the server:
 app.listen(port, function () {

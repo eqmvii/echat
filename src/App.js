@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 import './App.css';
 
 // object filled with debug variables
-// Use dbv.log for all logging, and 
+// Use dbv.log for all logging, 
+// toggle debugmode (dbm) for production
 var dbv = {
   refresh_rate: 200,
-  dbm: true,
+  dbm: false,
   logged_in: false,
   username: "Eric",
   log: function (message) {
@@ -148,6 +149,7 @@ class ChatApp extends Component {
     // get recipe data from the server asynchronously, state will refresh when it lands
     var refresh_route = '/getmessages?max_id=';
     refresh_route += this.state.max_id;
+    console.log(refresh_route);
     fetch(refresh_route)
       .then(res => res.json())
       //.then(res => { console.log(res); this.setState({ data: res }) })
