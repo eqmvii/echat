@@ -4,6 +4,7 @@ import './App.css';
 // object filled with debug variables
 // Use dbv.log for all logging, and 
 var dbv = {
+  refresh_rate: 200,
   dbm: true,
   logged_in: false,
   username: "Eric",
@@ -65,8 +66,8 @@ class ChatApp extends Component {
     this.handleLogout = this.handleLogout.bind(this);
     this.handleChatSend = this.handleChatSend.bind(this);
 
-    this.state = { username: false, messages: [], nameInput: '', chatInput: '' }
-    
+    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [] }
+
   }
 
   handleNameTyping(event) {
@@ -83,12 +84,18 @@ class ChatApp extends Component {
     dbv.log("Login pressed!");
     sessionStorage.setItem('username', this.state.nameInput);
     // send login info to the backend server
-    fetch('/login', { method: "POST", body: JSON.stringify(this.state.nameInput) })
+    fetch('/login', { method: "POST", body: JSON.stringify({username: this.state.nameInput}) })
       .then(res => { res.json(); dbv.log(res); });
-    
+
   }
 
   handleLogout() {
+    var delete_name = this.state.username;
+    
+    // Send logout to the server
+    fetch('/logout', { method: "POST", body: JSON.stringify({ username: delete_name }) })
+     .then(res => { res.json(); dbv.log(res); });
+
     this.setState({ username: false, nameInput: '' });
     sessionStorage.removeItem('username');
     // TODO: Send logout message to the server
@@ -97,15 +104,28 @@ class ChatApp extends Component {
 
   handleChatSend(event) {
     event.preventDefault();
+    dbv.log("handleChatSend was called!");
+    dbv.log(this.state.chatInput);
+    let message = this.state.chatInput;
+    let username = this.state.username;
+
+    /*
+    // Front-end only message list population
     // alert("Message to be sent: " + this.state.chatInput);
     // copy the entire old state array of messages
     let msgList = this.state.messages.slice();
     msgList.push(this.state.chatInput);
     this.setState({ messages: msgList, chatInput: '' })
     dbv.log(msgList);
-      // send posted message info to the backend server
-      fetch('/postmessage', { method: "POST", body: JSON.stringify({message: this.state.chatInput, username: this.state.username}) })
-      .then(res => { res.json(); dbv.log(res); });
+    */
+
+
+    // send posted message info to the backend server
+    fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
+      .then(res => { res.json(); dbv.log(res); this.setState({ chatInput: '' }) });
+
+    
+
   }
 
   componentWillMount() {
@@ -114,8 +134,44 @@ class ChatApp extends Component {
     dbv.log("Session username stored as: ");
     dbv.log(stored_username);
     if (stored_username) {
-      this.setState( {username: stored_username} );
+      this.setState({ username: stored_username });
     }
+  }
+
+  refresh() {
+    dbv.log("Tick...");
+    // get recipe data from the server asynchronously, state will refresh when it lands
+    fetch('/getmessages')
+      .then(res => res.json())
+      //.then(res => { console.log(res); this.setState({ data: res }) })
+      .then(res => {
+        // dbv.log(res[0]);
+        if (res.length > 0){
+          var max_id = res[0].id;
+        }
+        else { max_id = 0; }
+        // dbv.log("Max id is: " + max_id);
+        this.setState({ messages: res.reverse(), max_id: max_id });
+      });
+    //.then(() => console.log(this.state));
+
+    fetch('/getusers')
+    .then(res => res.json())
+    //.then(res => { console.log(res); this.setState({ data: res }) })
+    .then(res => {
+      this.setState({ users: res });
+    });
+  }
+
+  componentDidMount() {
+    this.refresh_interval = setInterval(
+      () => this.refresh(),
+      dbv.refresh_rate
+    );
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.refresh_interval);
   }
 
   render() {
@@ -125,11 +181,11 @@ class ChatApp extends Component {
     if (this.state.username) {
       return (
         <div>
-          <ChatHeader 
-            handleLogout={this.handleLogout} 
+          <ChatHeader
+            handleLogout={this.handleLogout}
             user={this.state.username}
           />
-          <UserList users={this.state.username} />
+          <UserList users={this.state.users} />
           <Chatroom messages={this.state.messages} />
           <ChatTextInput
             handleChatTyping={this.handleChatTyping}
@@ -163,9 +219,17 @@ class ChatHeader extends Component {
 
 class UserList extends Component {
   render() {
+    var user_display_list = '';
+    for (let i = 0; i < this.props.users.length; i++) {
+      user_display_list += this.props.users[i].username;
+      if (i < (this.props.users.length -1)) {
+        user_display_list += ', ';
+      }
+
+    }
     return (
       <div>
-        <div className="alert alert-success"><strong>Current users: </strong>{this.props.users}</div>
+        <div className="alert alert-success"><strong>Current users: </strong>{user_display_list}</div>
         <br />
       </div>
     )
@@ -174,26 +238,30 @@ class UserList extends Component {
 
 class Chatroom extends Component {
   render() {
-    var max_messages = 4;
+    // messages is an array of objects with key value pairs
+    // dbv.log("Rendering the chatroom!");
+    var max_messages = 20;
     // dbv.log(this.props.messages.length);
     // dbv.log(this.props.messages);
-    dbv.log("Padding: ");
+    // dbv.log("Padding: ");
     var padding = max_messages - this.props.messages.length;
-    dbv.log(padding);
+    // dbv.log(padding);
     var message_list = this.props.messages.slice();
 
     // If no messages yet, render nothing
     if (this.props.messages.length < max_messages) {
       // return (<div><br /><br /><br /></div>);
       for (let i = 0; i < padding; i++) {
-        message_list.push('');
+        // console.log("doing padding");
+        message_list.push({ username: '', message: ''});
       }
     }
 
     // truncate!
     var truncate = this.props.messages.length - max_messages;
-    if (this.props.messages.length > max_messages ){
-      for (let i = 0; i < truncate; i++){
+    if (this.props.messages.length > max_messages) {
+      for (let i = 0; i < truncate; i++) {
+        // console.log("doing truncating");
         message_list.shift();
       }
 
@@ -205,22 +273,23 @@ class Chatroom extends Component {
     var messagesToDisplay = [];
     var newMessage;
     for (let i = 0; i < message_list.length; i++) {
-      if (message_list[i]) {
-        newMessage = (<div key={i}>&#60;{sessionStorage.getItem('username')}&#62; {message_list[i]}</div>);
+      if (message_list[i].message !== '') {
+        newMessage = (<div key={i}>&#60;{message_list[i].username}&#62; {message_list[i].message}</div>);
       }
       else {
         //newMessage = (<div key={i}>| {message_list[i]}</div>);
-        newMessage = (<br key={i}/>);
+        newMessage = (<br key={i} />);
       }
-      
+
+
       // dbv.log(newMessage);
       messagesToDisplay.push(newMessage);
     }
     return (
       <div>
-        
-          {messagesToDisplay}
-        
+
+        {messagesToDisplay}
+
         <br />
       </div>
     )

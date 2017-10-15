@@ -54,6 +54,7 @@ app.use(express.static('build'));
 
 // API endpoint for testing
 app.get('/test', function (req, res) {
+    // TODO: Use a query string and only respond with an update if an update exists
     console.log("test endpoint hit");
     client.query('SELECT * FROM test_table;', (err, response) => {
         if (err) throw err;
@@ -61,14 +62,39 @@ app.get('/test', function (req, res) {
     });
 });
 
+
+// API endpoint for testing
+app.get('/getmessages', function (req, res) {
+    // console.log("Get messages endpoint hit");
+    client.query('SELECT * FROM echat_messages ORDER BY stamp desc LIMIT 20', (err, response) => {
+        if (err) throw err;
+        res.json(response.rows);
+
+    });
+});
+
+// API endpoint for testing
+app.get('/getusers', function (req, res) {
+    // console.log("Get messages endpoint hit");
+    client.query('SELECT * FROM echat_users ORDER BY username', (err, response) => {
+        if (err) throw err;
+        res.json(response.rows);
+
+    });
+});
+
 // login endpoint
 app.post('/login', function (req, res) {
+    // TODO: Prevent duplicate users
     console.log("Login requested");
     // clear the old user table   
+
+    /*
     // TODO: Make this not insane for multiple users.
     client.query('DELETE FROM echat_users', (err, data) => {
-        console.log("Deleted the messages table.");
+        console.log("Deleted the users table.");
     });
+    */
 
     // parse the body of the POST request
     // node.js boiilterplate for handling 
@@ -78,12 +104,13 @@ app.post('/login', function (req, res) {
         body.push(chunk);
     }).on('end', () => {
         body = Buffer.concat(body).toString();
+        body = JSON.parse(body);
         // at this point, `body` has the entire request body stored in it as a string
-        console.log("Login POST request body is: " + body);
+        console.log("Login POST request name is: " + body.username);
 
         // Add the new user to the username table
         let query_string = "INSERT INTO echat_users (username) VALUES ($1)";
-        let values = [body];
+        let values = [body.username];
         console.log("It's query time! Query string / values: ");
         console.log(query_string);
         console.log(values);
@@ -91,6 +118,7 @@ app.post('/login', function (req, res) {
             // console.log(err);
         });
     });
+    res.json("ok all is good thank you");
 
 });
 
@@ -118,10 +146,53 @@ app.post('/postmessage', function (req, res) {
         console.log(query_string);
         console.log(values);
         client.query(query_string, values, (err, data) => {
-            // console.log(err);
+            if(err){
+                console.log(err);
+            };
+            res.json("ok all is good thank you");
         });
     });
 
+    
+});
+
+
+
+
+
+// post message endpoint
+app.post('/logout', function (req, res) {
+    console.log("Logout requested");
+    // clear the old user table   
+
+    // parse the body of the POST request
+    // node.js boiilterplate for handling 
+    // a body stream from the PUT request
+    let body = [];
+    req.on('data', (chunk) => {
+        body.push(chunk);
+    }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        // at this point, `body` has the entire request body stored in it as a string
+        body = JSON.parse(body);
+        console.log("logout POST request body is: " + body.username);
+        
+
+        // Add the new user to the username table
+        let query_string = "DELETE FROM echat_users WHERE username = $1";
+        let values = [body.username];
+        console.log("It's query time! Query string / values: ");
+        console.log(query_string);
+        console.log(values);
+        client.query(query_string, values, (err, data) => {
+            if(err){
+                console.log(err);
+            };
+            res.json("ok all is good thank you");
+        });
+    });
+
+    
 });
 
 
