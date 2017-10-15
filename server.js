@@ -115,10 +115,13 @@ app.post('/login', function (req, res) {
         console.log(query_string);
         console.log(values);
         client.query(query_string, values, (err, data) => {
-            // console.log(err);
+            if (err) {
+                console.log(err);
+            }
+            res.json("ok all is good thank you");
         });
     });
-    res.json("ok all is good thank you");
+    
 
 });
 
