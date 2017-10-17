@@ -2,8 +2,34 @@
 
 A simple chat program using React, Express, PostgreSQL and deployed to Heroku.
 
+By eqmvii 
+
 ____
+
 ____
+
+## echat PostgreSQL table structure
+
+```
+
+$ sudo -u postgres psql
+
+CREATE TABLE echat_messages (
+  id SERIAL NOT NULL PRIMARY KEY,
+  username varchar(20) NOT NULL,
+  message varchar(80) NOT NULL,
+  stamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE echat_users (
+  id SERIAL NOT NULL PRIMARY KEY,
+  username varchar(20) NOT NULL,
+  stamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO echat_messages (username, message) VALUES ('Eric', 'test message');
+```
+
 
 
 # EQMVII-PRES
