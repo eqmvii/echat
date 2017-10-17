@@ -1,3 +1,11 @@
+# echat
+
+A simple chat program using React, Express, PostgreSQL and deployed to Heroku.
+
+____
+____
+
+
 # EQMVII-PRES
 
 Postgres / React / Express Starter
