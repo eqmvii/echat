@@ -5,8 +5,8 @@ import './App.css';
 // Use dbv.log for all logging, 
 // toggle debugmode (dbm) for production
 var dbv = {
-  refresh_rate: 200,
-  dbm: false,
+  refresh_rate: 1000,
+  dbm: true,
   logged_in: false,
   username: "Eric",
   log: function (message) {
@@ -32,10 +32,17 @@ class EntranceSplash extends Component {
   }
 
 
+
+
   render() {
+  var error_message = (<div></div>);
+    if (this.props.login_error !== false) {
+      error_message = <div className="alert alert-danger"><strong>Error:</strong> {this.props.login_error}</div>
+    }
     return (
       <div className="text-center">
         <h3>Welcome to echat! </h3>
+        {error_message}
         <br />
         <form onSubmit={this.props.handleLogin}>
           <input
@@ -66,8 +73,9 @@ class ChatApp extends Component {
     this.handleChatTyping = this.handleChatTyping.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
     this.handleChatSend = this.handleChatSend.bind(this);
+    this.handleClearMessages = this.handleClearMessages.bind(this);
 
-    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false }
+    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false, login_error: false }
 
   }
 
@@ -81,11 +89,19 @@ class ChatApp extends Component {
 
   handleLogin(event) {
     event.preventDefault();
-    this.setState({ username: this.state.nameInput, logged_in: true, max_id: 0 });
     dbv.log("Login pressed!");
     sessionStorage.setItem('username', this.state.nameInput);
     // send login info to the backend server
-    fetch('/login', { method: "POST", body: JSON.stringify({username: this.state.nameInput}) });
+    fetch('/login', { method: "POST", body: JSON.stringify({username: this.state.nameInput}) })
+      .then(res => res.json())
+      .then(res => {
+        console.log(res);
+        if (res.duplicate === false) {
+          this.setState({ username: this.state.nameInput, logged_in: true, max_id: 0, login_error: false});
+        } else {
+          this.setState({ login_error: 'Username already taken', nameInput: '' });          
+        }
+        });
 
   }
 
@@ -119,13 +135,16 @@ class ChatApp extends Component {
     dbv.log(msgList);
     */
 
-
     // send posted message info to the backend server
     fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
       .then(() => (this.setState({ chatInput: '' }) ));
 
-    
 
+  }
+
+  handleClearMessages() {
+    fetch('/clearhistory')
+      .then(() => (this.setState({max_id: 0})));
   }
 
   componentWillMount() {
@@ -141,18 +160,18 @@ class ChatApp extends Component {
   refresh() {
     // Don't fetch messages if not logged in
     if(!this.state.logged_in){
-      console.log("Not logged in not getting data HMPH");
-      console.log(this.state.logged_in);
+      dbv.log("Not logged in not getting data HMPH");
+      dbv.log(this.state.logged_in);
       return;
     }
     //dbv.log("Tick...");
     // get recipe data from the server asynchronously, state will refresh when it lands
     var refresh_route = '/getmessages?max_id=';
     refresh_route += this.state.max_id;
-    console.log(refresh_route);
+    dbv.log(refresh_route);
     fetch(refresh_route)
       .then(res => res.json())
-      //.then(res => { console.log(res); this.setState({ data: res }) })
+      //.then(res => { dbv.log(res); this.setState({ data: res }) })
       .then(res => {
         // dbv.log(res[0]);
         if (res.length > 0){
@@ -161,14 +180,19 @@ class ChatApp extends Component {
         }
         // dbv.log("Max id is: " + max_id);
         else {
-          dbv.log("No new messages from the server");
+          dbv.log("No new messages from the server or no messages at all");
+          // Make sure client shows blank screen if screen recently refreshed
+          if (this.state.max_id ===0){
+            this.setState({messages:[]});
+            dbv.log("Set messages state to empty array");
+          }
         }
       });
-    //.then(() => console.log(this.state));
+    //.then(() => dbv.log(this.state));
 
     fetch('/getusers')
     .then(res => res.json())
-    //.then(res => { console.log(res); this.setState({ data: res }) })
+    //.then(res => { dbv.log(res); this.setState({ data: res }) })
     .then(res => {
       this.setState({ users: res });
     });
@@ -203,6 +227,8 @@ class ChatApp extends Component {
             handleChatSend={this.handleChatSend}
             chatInput={this.state.chatInput}
           />
+          <br />
+          <ControlBar handleClearMessages={this.handleClearMessages} handleLogout={this.handleLogout}/>
         </div>
       )
 
@@ -213,6 +239,7 @@ class ChatApp extends Component {
         handleLogin={this.handleLogin}
         handleNameTyping={this.handleNameTyping}
         nameInput={this.state.nameInput}
+        login_error={this.state.login_error}
       />);
   }
 
@@ -225,6 +252,21 @@ class ChatHeader extends Component {
         <h1>Welcome to echat, {this.props.user}! <button className="btn btn-danger pull-right" onClick={this.props.handleLogout}>Logout</button> </h1>
       </div>
     )
+  }
+}
+
+class ControlBar extends Component {
+  render() {
+    if(dbv.dbm){
+    return (
+      <div className="text-center btn-toolbar">
+        <button className="btn btn-primary" onClick={this.props.handleClearMessages}>Clear Chat History</button> 
+        <button className="btn btn-danger" onClick={this.props.handleLogout}>Logout</button>
+        
+      </div>
+    )
+  }
+  else { return false}
   }
 }
 
@@ -263,7 +305,7 @@ class Chatroom extends Component {
     if (this.props.messages.length < max_messages) {
       // return (<div><br /><br /><br /></div>);
       for (let i = 0; i < padding; i++) {
-        // console.log("doing padding");
+        // dbv.log("doing padding");
         message_list.push({ username: '', message: ''});
       }
     }
@@ -272,7 +314,7 @@ class Chatroom extends Component {
     var truncate = this.props.messages.length - max_messages;
     if (this.props.messages.length > max_messages) {
       for (let i = 0; i < truncate; i++) {
-        // console.log("doing truncating");
+        // dbv.log("doing truncating");
         message_list.shift();
       }
 
