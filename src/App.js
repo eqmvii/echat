@@ -5,8 +5,8 @@ import './App.css';
 // Use dbv.log for all logging, 
 // toggle debugmode (dbm) for production
 var dbv = {
-  refresh_rate: 1000,
-  dbm: true,
+  refresh_rate: 200,
+  dbm: false,
   logged_in: false,
   username: "Eric",
   log: function (message) {
@@ -27,10 +27,8 @@ class EntranceSplash extends Component {
     super(props);
     // bind handle functions
     //this.handleSubmit = this.handleSubmit.bind(this);
-
     this.state = { inputval: '' }
   }
-
 
 
 
@@ -90,14 +88,16 @@ class ChatApp extends Component {
   handleLogin(event) {
     event.preventDefault();
     dbv.log("Login pressed!");
-    sessionStorage.setItem('username', this.state.nameInput);
+    // strip white space from username, distinguishes bot messags from user messages
+    var username = this.state.nameInput.replace(/ /g, '');
+    sessionStorage.setItem('username', username);
     // send login info to the backend server
-    fetch('/login', { method: "POST", body: JSON.stringify({username: this.state.nameInput}) })
+    fetch('/login', { method: "POST", body: JSON.stringify({username: username}) })
       .then(res => res.json())
       .then(res => {
         console.log(res);
         if (res.duplicate === false) {
-          this.setState({ username: this.state.nameInput, logged_in: true, max_id: 0, login_error: false});
+          this.setState({ username: username, logged_in: true, max_id: 0, login_error: false, nameInput: ''});
         } else {
           this.setState({ login_error: 'Username already taken', nameInput: '' });          
         }
@@ -160,23 +160,42 @@ class ChatApp extends Component {
   refresh() {
     // Don't fetch messages if not logged in
     if(!this.state.logged_in){
-      dbv.log("Not logged in not getting data HMPH");
-      dbv.log(this.state.logged_in);
+      dbv.log("Not logged in; not fetching getting data");
+      //dbv.log(this.state.logged_in);
       return;
     }
     //dbv.log("Tick...");
     // get recipe data from the server asynchronously, state will refresh when it lands
     var refresh_route = '/getmessages?max_id=';
     refresh_route += this.state.max_id;
+    refresh_route += "&username=";
+    refresh_route += this.state.username;
     dbv.log(refresh_route);
     fetch(refresh_route)
       .then(res => res.json())
       //.then(res => { dbv.log(res); this.setState({ data: res }) })
       .then(res => {
-        // dbv.log(res[0]);
-        if (res.length > 0){
-          var max_id = res[0].id;
-          this.setState({ messages: res.reverse(), max_id: max_id });
+        dbv.log("refresh response object:");
+        dbv.log(res);
+        // if the logout command was send, logout
+        if (res.logout){
+          console.log("Logout command received!");
+          //this.setState({logged_in: false, username: false, max_id: 0});
+          this.setState({login_error: "Logged out due to inactivity"});
+          this.handleLogout();
+          return;
+        }
+
+        // If there are new messages, add them to React's state
+
+        if (res.update){
+          var max_id;
+          if (res.rows.length > 0){
+            max_id = res.rows[0].id;
+          } else {
+            max_id = 0;
+          }          
+          this.setState({ messages: res.rows.reverse(), max_id: max_id });
         }
         // dbv.log("Max id is: " + max_id);
         else {
@@ -324,10 +343,14 @@ class Chatroom extends Component {
     // tag and render the list of messages
     // TODO: Make the key the messages unique key from the db
     var messagesToDisplay = [];
-    var newMessage;
+    var newMessage, time, time_formatted;
     for (let i = 0; i < message_list.length; i++) {
       if (message_list[i].message !== '') {
-        newMessage = (<div key={i}>&#60;{message_list[i].username}&#62; {message_list[i].message}</div>);
+        time = new Date(message_list[i].stamp);
+        //dbv.log(time);
+        // time_formatted = time.getHours() + ":" + time.getMinutes() + " ";
+        time_formatted = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " ";      
+        newMessage = (<div key={i}>{time_formatted}&#60;{message_list[i].username}&#62; {message_list[i].message}</div>);
       }
       else {
         //newMessage = (<div key={i}>| {message_list[i]}</div>);
