@@ -5,7 +5,7 @@ import './App.css';
 // Use dbv.log for all logging, 
 // toggle debugmode (dbm) for production
 var dbv = {
-  refresh_rate: 200,
+  refresh_rate: 400,
   dbm: false,
   logged_in: false,
   username: "Eric",
@@ -13,7 +13,20 @@ var dbv = {
     if (this.dbm) {
       console.log(message);
     }
+  },
+  slower: function() {
+    if (this.refresh_rate <= 5000) {
+    this.refresh_rate += 100;
   }
+  console.log("Slowed down! Now at: " + this.refresh_rate);
+  },
+  faster: function() {
+    if (this.refresh_rate >= 201) {
+    this.refresh_rate -= 100;
+  }
+}
+
+  
 }
 
 dbv.log("Logging is enabled.");
@@ -72,9 +85,32 @@ class ChatApp extends Component {
     this.handleLogout = this.handleLogout.bind(this);
     this.handleChatSend = this.handleChatSend.bind(this);
     this.handleClearMessages = this.handleClearMessages.bind(this);
+    this.handleClearUsers = this.handleClearUsers.bind(this);
+    this.handleSlower = this.handleSlower.bind(this);
+    this.handleFaster = this.handleFaster.bind(this);
 
-    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false, login_error: false }
+    this.state = { username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false, login_error: false, refresh_rate: dbv.refresh_rate }
 
+  }
+
+  handleSlower(){
+    dbv.slower();
+    clearInterval(this.refresh_interval);
+    this.refresh_interval = setInterval(
+      () => this.refresh(),
+      dbv.refresh_rate
+    );
+    this.setState({refresh_rate: dbv.refresh_rate});
+  }
+
+  handleFaster(){
+    dbv.faster();
+    clearInterval(this.refresh_interval);
+    this.refresh_interval = setInterval(
+      () => this.refresh(),
+      dbv.refresh_rate
+    );
+    this.setState({refresh_rate: dbv.refresh_rate});
   }
 
   handleNameTyping(event) {
@@ -95,7 +131,7 @@ class ChatApp extends Component {
     fetch('/login', { method: "POST", body: JSON.stringify({username: username}) })
       .then(res => res.json())
       .then(res => {
-        console.log(res);
+        dbv.log(res);
         if (res.duplicate === false) {
           this.setState({ username: username, logged_in: true, max_id: 0, login_error: false, nameInput: ''});
         } else {
@@ -147,6 +183,10 @@ class ChatApp extends Component {
       .then(() => (this.setState({max_id: 0})));
   }
 
+  handleClearUsers() {
+    fetch('/clearusers');
+  }
+
   componentWillMount() {
     // Check to see if user already logged in
     var stored_username = sessionStorage.getItem('username');
@@ -179,7 +219,7 @@ class ChatApp extends Component {
         dbv.log(res);
         // if the logout command was send, logout
         if (res.logout){
-          console.log("Logout command received!");
+          dbv.log("Logout command received!");
           //this.setState({logged_in: false, username: false, max_id: 0});
           this.setState({login_error: "Logged out due to inactivity"});
           this.handleLogout();
@@ -247,7 +287,19 @@ class ChatApp extends Component {
             chatInput={this.state.chatInput}
           />
           <br />
-          <ControlBar handleClearMessages={this.handleClearMessages} handleLogout={this.handleLogout}/>
+          <br />
+          <ControlBar 
+            handleClearMessages={this.handleClearMessages} 
+            handleClearUsers={this.handleClearUsers}
+            handleLogout={this.handleLogout}
+            parent_state={this.state}
+            handleSlower={this.handleSlower}
+            handleFaster={this.handleFaster}
+              />
+          <div className="text-center">
+            <br />
+            <ToggleButton />
+            </div>
         </div>
       )
 
@@ -274,14 +326,47 @@ class ChatHeader extends Component {
   }
 }
 
+class ToggleButton extends Component {
+    constructor(props) {
+      super(props);
+      // bind handle functions
+      this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick(){
+      dbv.dbm = !dbv.dbm;
+    }
+
+  render() {
+    return (
+      <button onClick={this.handleClick} className="btn btn-info">Toggle Debug Mode</button>
+    )
+  }
+}
+
 class ControlBar extends Component {
   render() {
     if(dbv.dbm){
-    return (
+    return (<div>
       <div className="text-center btn-toolbar">
         <button className="btn btn-primary" onClick={this.props.handleClearMessages}>Clear Chat History</button> 
-        <button className="btn btn-danger" onClick={this.props.handleLogout}>Logout</button>
-        
+        <button className="btn btn-secondary" onClick={this.props.handleLogout}>Logout</button>
+        <button className="btn btn-warning" onClick={this.props.handleClearUsers}>Logout All Users</button>
+        <button className="btn btn-danger" onClick={this.props.handleSlower}>Slow Refresh Rate</button>
+        <button className="btn btn-success" onClick={this.props.handleFaster}>Make Refresh Faster</button>         
+      </div>
+      <div className="text-center">
+      <br />
+      <h3>Debug Information (open console for more)</h3>
+        <ul className="text-left">
+        <li><strong>Refresh every: </strong> {this.props.parent_state.refresh_rate / 1000} seconds </li>
+          <li><strong>Your username:</strong> {this.props.parent_state.username}</li>
+          <li><strong>Messages:</strong> {this.props.parent_state.messages.length}</li>
+          <li><strong>Users:</strong> {this.props.parent_state.users.length}</li>
+          <li><strong>Highest message ID:</strong> {this.props.parent_state.max_id}</li>
+          </ul>  
+          <br />
+      </div>
       </div>
     )
   }
@@ -350,7 +435,7 @@ class Chatroom extends Component {
         //dbv.log(time);
         // time_formatted = time.getHours() + ":" + time.getMinutes() + " ";
         time_formatted = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " ";      
-        newMessage = (<div key={i}>{time_formatted}&#60;{message_list[i].username}&#62; {message_list[i].message}</div>);
+        newMessage = (<div key={i}>{time_formatted}&#60;<strong>{message_list[i].username}</strong>&#62; {message_list[i].message}</div>);
       }
       else {
         //newMessage = (<div key={i}>| {message_list[i]}</div>);
@@ -362,7 +447,7 @@ class Chatroom extends Component {
       messagesToDisplay.push(newMessage);
     }
     return (
-      <div>
+      <div id="chatroom">
 
         {messagesToDisplay}
 
@@ -377,6 +462,7 @@ class ChatTextInput extends Component {
     return (
       <div>
         <form onSubmit={this.props.handleChatSend}>
+        <label>Message</label>
           <input
             type="text"
             value={this.props.chatInput}

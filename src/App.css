@@ -1,3 +1,25 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700');
+
 ul {
     list-style: none;
+}
+
+div#chatroom {
+    font-family: 'Source Code Pro', monospace;
+    color: #15ff00;
+    background-color: #242628;
+    border-radius: 8px;
+    padding: 6px;
+    margin: 4px 0px 20px 0px;
+}
+
+div#chatroom div {
+    font-size: 16px;
+    margin-left: 6px;
+}
+
+input {
+    margin: 0px 12px 0px 6px;
+    height: 30px;
+    width: 40%;
 }

@@ -128,14 +128,23 @@ app.get('/test', function (req, res) {
     });
 });
 
-// API endpoint for testing
+// Delete all messages in the table
 app.get('/clearhistory', function (req, res) {
-    // TODO: Use a query string and only respond with an update if an update exists
     console.log("clear chat history endpoint hit");
     client.query('DELETE FROM echat_messages;', (err, response) => {
         if (err) throw err;
         //res.json(response.rows[0].name);
         server_max_id = -1;
+        res.end();
+
+    });
+});
+
+// Delete all users in the table
+app.get('/clearusers', function (req, res) {
+    console.log("clear users table endpoint hit");
+    client.query('DELETE FROM echat_users;', (err, response) => {
+        if (err) throw err;
         res.end();
 
     });
