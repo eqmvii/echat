@@ -161,21 +161,18 @@ class ChatApp extends Component {
     let message = this.state.chatInput;
     let username = this.state.username;
 
-    /*
+    
     // Front-end only message list population
-    // alert("Message to be sent: " + this.state.chatInput);
-    // copy the entire old state array of messages
+    // This might cause weird bugs in message list order
+    // Or it might work just fine!
     let msgList = this.state.messages.slice();
-    msgList.push(this.state.chatInput);
+    msgList.push({message: this.state.chatInput, stamp: Date.now(), username: username});
     this.setState({ messages: msgList, chatInput: '' })
-    dbv.log(msgList);
-    */
+    dbv.log(msgList);  
 
     // send posted message info to the backend server
     fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
       .then(() => (this.setState({ chatInput: '' }) ));
-
-
   }
 
   handleClearMessages() {
@@ -197,6 +194,8 @@ class ChatApp extends Component {
     }
   }
 
+  // Currenlt uses dumb short horrible polling
+  // TODO: Use long polling, explore socket.io
   refresh() {
     // Don't fetch messages if not logged in
     if(!this.state.logged_in){
@@ -227,7 +226,6 @@ class ChatApp extends Component {
         }
 
         // If there are new messages, add them to React's state
-
         if (res.update){
           var max_id;
           if (res.rows.length > 0){
