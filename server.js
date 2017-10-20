@@ -11,8 +11,8 @@ var time_settings = {
     run_cleanup: (5 * 60 * 1000),
     kick_idle: (10 * 60 * 1000),
     delete_chat: (20 * 60 * 1000),
-    long_poll_rate: (333),
-    max_polls: 50
+    long_poll_rate: (100),
+    max_polls: 160
 }
 
 // set credentials based on local or production
@@ -103,6 +103,7 @@ function cleanup() {
         });
 }
 
+// A function, not a route. 
 function logout_user(username) {
     console.log("Due to inactivity, I will logout " + username);
     var query_string = "DELETE FROM echat_users WHERE username = $1";
@@ -181,7 +182,7 @@ app.get('/getmessages', function (req, res) {
     var values = [req.query.username];
     client.query(logged_query_string, values).then((response) => {
         if (response.rows.length === 0) {
-            console.log("###The user isn't logged in...");
+            // console.log("###The user isn't logged in...");
             get_messages_response_object.logout = true;
             res.json(get_messages_response_object);
         }
@@ -236,7 +237,7 @@ app.get('/getmessageslong', function (req, res) {
             res.json(get_messages_response_object);
         }
         else {
-            console.log("@@@ Enter the time loop");
+            // console.log("@@@ Enter the time loop");
             counter +=1;
             setTimeout(timeLoop, time_settings.long_poll_rate);
 
@@ -268,18 +269,18 @@ app.get('/getmessageslong', function (req, res) {
     });
 
     function timeLoop() {
-        console.log("@@@ Timeloop called " + counter + " time(s), can go " + time_settings.max_polls + " times!");
+        // console.log("@@@ Timeloop called " + counter + " time(s), can go " + time_settings.max_polls + " times!");
         counter += 1;
-        console.log("Server_max_id: " + server_max_id + "; max_id: " + max_id);
+        // console.log("Server_max_id: " + server_max_id + "; max_id: " + max_id);
         if (max_id === server_max_id && counter < time_settings.max_polls) {
-            console.log("@@@ No updates yet...");
+            // console.log("@@@ No updates yet...");
             // check again in 200ms
             setTimeout(timeLoop, time_settings.long_poll_rate);
         }
         else if (counter < time_settings.max_polls) {
             // console.log("React max: " + max_id + " Server max: " + server_max_id);
             // console.log("React might be behind, send update!");
-            console.log("@@@ New messages! Retrieve and send them.");
+            // console.log("@@@ New messages! Retrieve and send them.");
             client.query('SELECT * FROM echat_messages ORDER BY stamp desc LIMIT 20', (err, response) => {
                 // console.log("Max: " + response.rows[0].id);
                 // console.log("Min: " + response.rows[response.rows.length - 1].id);

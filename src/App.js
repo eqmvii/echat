@@ -306,7 +306,7 @@ class ChatApp extends Component {
         if (res.logout) {
           dbv.log("Logout command received!");
           //this.setState({logged_in: false, username: false, max_id: 0});
-          this.setState({ login_error: "Logged out due to inactivity" });
+          this.setState({ login_error: "You have been Logged out." });
           this.handleLogout();
           return;
         }
@@ -368,7 +368,11 @@ class ChatApp extends Component {
       //.then(res => { dbv.log(res); this.setState({ data: res }) })
       .then(res => {
         this.setState({ users: res });
-      }).catch(error => console.log(error));
+      }).catch(error => {
+        // Try again since there's likely a connection issue
+        // setTimeout(this.longPoll, 1000);
+        console.log(error);
+      });
 
     dbv.log("Attempting long polling FC!");
     // fetch longpoll route
@@ -394,7 +398,7 @@ class ChatApp extends Component {
         if (res.logout) {
           dbv.log("Logout command received!");
           //this.setState({logged_in: false, username: false, max_id: 0});
-          this.setState({ login_error: "Logged out due to inactivity" });
+          this.setState({ login_error: "You have logged out" });
           this.handleLogout();
           return;
         }
@@ -415,7 +419,12 @@ class ChatApp extends Component {
 
         setTimeout(this.longPoll, dbv.refresh_rate);
       })
-      .catch(error => console.log(error));
+      .catch(error => {
+        // Try again since there's likely a connection issue
+        console.log("Long poll error, trying again...");
+        setTimeout(this.longPoll, 1000);
+        dbv.log(error);
+      });
 
   }
 
