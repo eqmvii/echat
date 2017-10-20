@@ -14,7 +14,7 @@ var dbv = {
   refresh_modes: ['DDOS', 'Long Polling'],
   refresh_mode: 1,
   refresh_rate: 350,
-  dbm: true,
+  dbm: false,
   logged_in: false,
   username: "Eric",
   max_messages: 16,
