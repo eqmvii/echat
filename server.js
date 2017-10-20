@@ -1,8 +1,11 @@
+// server.js - backend for echat application
+// Node.js/Express server hooked into PostgreSQL via PG
+// TODO: Investigate using sessions for logging in (maybe for the next app?)
+
 const express = require('express')
 const app = express()
 const { Client } = require('pg')
 
-// Database connection code
 
 var client;
 var server_max_id = -1;
@@ -15,6 +18,7 @@ var time_settings = {
     max_polls: 160
 }
 
+// Database connection code
 // set credentials based on local or production
 if (!process.env.PORT) {
     client = new Client({
@@ -53,7 +57,7 @@ client.query('SELECT * FROM echat_messages', (err, res) => {
         console.log(JSON.stringify(row));
     }
 });
-// End database connection and testing code (modularize?)
+// End database connection and testing code (TODO: modularize?)
 
 // DB cleanup code, automatically logout users after a certain period of time
 setInterval(cleanup, time_settings.run_cleanup);
@@ -96,9 +100,8 @@ function cleanup() {
                     client.query(reset_query_string).then(response => {
                         server_max_id = -1;
                     })
-
                 });
-                
+               
             }
         });
 }
@@ -111,7 +114,7 @@ function logout_user(username) {
     client.query(query_string, values)
         .then(() => {
             query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-            values = ['   GOODBYE BOT   ', 'Goodbye ' + username + ', you have been logged out due to inactivity.'];
+            values = ['@GOODBYE BOT   ', 'Goodbye ' + username + ', you have been logged out due to inactivity.'];
             client.query(query_string, values);
             // slightly hacky way to force clients to refresh
             server_max_id += 2;
@@ -146,7 +149,6 @@ app.get('/clearhistory', function (req, res) {
             server_max_id = -1;
             res.end();
         })      
-
     });
 });
 
@@ -156,7 +158,7 @@ app.get('/clearusers', function (req, res) {
     client.query('DELETE FROM echat_users;', (err, response) => {
         if (err) throw err;
         var query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-        var values = ['   MASSLOG BOT   ', 'Somebody logged everyone out via debug mode!'];
+        var values = ['@MASSLOG BOT   ', 'Somebody logged everyone out via debug mode!'];
         console.log("It's query time! Query string / values: ");
         console.log(query_string);
         console.log(values);
@@ -164,11 +166,9 @@ app.get('/clearusers', function (req, res) {
             .then(response => {
                 server_max_id += 2;
                 res.end();
-            })      
-        
+            })          
     });
 });
-
 
 // Auto-refresh in DDOS mode
 app.get('/getmessages', function (req, res) {
@@ -187,7 +187,6 @@ app.get('/getmessages', function (req, res) {
             res.json(get_messages_response_object);
         }
         else {
-
             // Send response data
             if (max_id === server_max_id) {
                 // console.log("React max: " + max_id + " Server max: " + server_max_id);
@@ -212,10 +211,7 @@ app.get('/getmessages', function (req, res) {
             }
 
         }
-
     })
-
-
 });
 
 // Auto-refresh in long polling mode
@@ -292,7 +288,6 @@ app.get('/getmessageslong', function (req, res) {
                 get_messages_response_object.rows = response.rows;
                 res.json(get_messages_response_object);
             });
-
         }
         else {
             console.log("No updates, but we hit the limit, so let's send back a nothingburger");
@@ -314,16 +309,7 @@ app.get('/getusers', function (req, res) {
 
 // login endpoint
 app.post('/login', function (req, res) {
-    // TODO: Prevent duplicate users
     console.log("Login requested");
-    // clear the old user table   
-
-    /*
-    // TODO: Make this not insane for multiple users.
-    client.query('DELETE FROM echat_users', (err, data) => {
-        console.log("Deleted the users table.");
-    });
-    */
 
     // parse the body of the POST request
     // node.js boiilterplate for handling 
@@ -340,19 +326,6 @@ app.post('/login', function (req, res) {
 
         var name_check_query_string = "SELECT * FROM echat_users WHERE username = $1";
         var name_check_values = [username];
-
-
-
-        /*
-        client.query(query_string, values, (err, data) => {
-            //console.log("wurt");
-            if (err) {
-                console.log(err);
-            }
-            
-            res.end();
-        });
-        */
 
         // update user table, add greeting chat message, end HTTP request. With promises!
         client.query(name_check_query_string, name_check_values)
@@ -372,7 +345,7 @@ app.post('/login', function (req, res) {
                     client.query(query_string, values)
                         .then(resolve => {
                             var query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-                            var values = ['   WELCOME BOT   ', 'Welcome to echat, ' + username + '!'];
+                            var values = ['@WELCOME BOT   ', 'Welcome to echat, ' + username + '!'];
                             console.log("It's query time! Query string / values: ");
                             console.log(query_string);
                             console.log(values);
@@ -383,11 +356,7 @@ app.post('/login', function (req, res) {
                 }
             });
 
-
-
     });
-
-
 });
 
 // post message endpoint
@@ -426,8 +395,6 @@ app.post('/postmessage', function (req, res) {
             res.end();
         });
     });
-
-
 });
 
 function login_test(username) {
@@ -449,15 +416,13 @@ function login_test(username) {
                 client.query(query_string, values)
                     .then(() => {
                         query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2) returning id";
-                        values = ['   WELCOME BOT   ', "Welcome back to echat, " + username + "! You're back after being idle!"];
+                        values = ['@WELCOME BOT   ', "Welcome back to echat, " + username + "! You're back after being idle!"];
                         console.log("It's query time! Query string / values: ");
                         console.log(query_string);
                         console.log(values);
                         client.query(query_string, values);
                         server_max_id += 2;
-                    }
-
-                    );
+                    });
             }
         });
 }
@@ -468,10 +433,6 @@ function activity_update(username) {
     var values = [now, username];
     client.query(query_string, values);
 }
-
-
-
-
 
 // post message endpoint
 app.post('/logout', function (req, res) {
@@ -490,7 +451,6 @@ app.post('/logout', function (req, res) {
         body = JSON.parse(body);
         console.log("logout POST request body is: " + body.username);
 
-
         // Add the new user to the username table
         let query_string = "DELETE FROM echat_users WHERE username = $1";
         let values = [body.username];
@@ -502,20 +462,16 @@ app.post('/logout', function (req, res) {
                 console.log(err);
             };
             query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-            values = ['   GOODBYE BOT   ', 'Goodbye ' + body.username + '!'];
+            values = ['@GOODBYE BOT   ', 'Goodbye ' + body.username + '!'];
             client.query(query_string, values)
                 .then(response => {
                     server_max_id += 2;
-                    res.end();
+                    res.json("Done");
                 });  
             
         });
     });
-
-
-});
-
-// TODO: Investigate using sessions for logging in (maybe for the next app?)
+    });
 
 // Start up the server:
 app.listen(port, function () {

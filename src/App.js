@@ -158,8 +158,9 @@ class ChatApp extends Component {
   handleLogin(event) {
     event.preventDefault();
     dbv.log("Login pressed!");
-    // strip white space from username, distinguishes bot messags from user messages
+    // strip white space and @ symbols from username, distinguishes bot messags from user messages
     var username = this.state.nameInput.replace(/ /g, '');
+    var username = this.state.nameInput.replace(/@/g, '');
     sessionStorage.setItem('username', username);
     // Force user to enter a name
     if (username === ''){
