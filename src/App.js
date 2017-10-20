@@ -161,6 +161,11 @@ class ChatApp extends Component {
     // strip white space from username, distinguishes bot messags from user messages
     var username = this.state.nameInput.replace(/ /g, '');
     sessionStorage.setItem('username', username);
+    // Force user to enter a name
+    if (username === ''){
+      this.setState({login_error: "Please enter a username"});
+      return;
+    }
     // send login info to the backend server
     fetch('/login', { method: "POST", body: JSON.stringify({ username: username }) })
       .then(res => {
