@@ -2,14 +2,12 @@
 // A simple chat application in React
 // With a Node/Express/PostgreSQL backend 
 // By eqmvii - https://github.com/eqmvii
-// TODO: Try socket.io for websocket, try webworker for auto refresh
+// TODO: Try socket.io for websocket, try webworker for auto refresh, add a chatbot (tarot card?)
 
 import React, { Component } from 'react';
 import './App.css';
 
-// object filled with debug variables
-// Use dbv.log for all non-error logging, 
-// toggle debugmode (dbm) for production
+// Debug variables. Dbv.log for togglable non-error logging via dbv.dbm
 var dbv = {
   refresh_modes: ['DDOS', 'Long Polling'],
   refresh_mode: 1,
@@ -34,11 +32,6 @@ var dbv = {
       this.refresh_rate -= 100;
     }
   }
-}
-
-dbv.log("Logging is enabled.");
-if (dbv.logged_in) {
-  dbv.log("You are logged in!");
 }
 
 // component to render the introduction / login screen
@@ -641,28 +634,46 @@ class ChatTextInput extends Component {
 class App extends Component {
   constructor(props) {
     super(props); // required in the constructor of a React component
-    this.state = { data: "No request/response from the server yet..." };
+    this.state = { data: "No request/response from the server yet...", ready: false };
 
     // bind this for use in below callback
-    // Not using an arrow function to preserve readability 
-    var that = this;
+    // Testing/using different this binding methods for learning and testing comprehension
+    // var that = this;
+    this.testConnection = this.testConnection.bind(this); 
 
-    // test connection to the server by fetching data to display
+    this.testConnection();    
+  }
+
+  testConnection(){
+    // test connection to the server by fetching data to display 
     fetch('/test')
-      .then(function (res) {
-        if (res.ok) {
-          return res.json();
-        } else {
-          throw Error(res.statusText)
-        }
-      })
-      .then(function (res) {
-        dbv.log(res);
-        that.setState({ data: res });
-      }).catch(error => console.log(error));
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        throw Error(res.statusText)
+      }
+    })
+    .then(res => {
+      dbv.log(res);
+      this.setState({ data: res, ready: true });
+    }).catch(error => {
+      console.log(error);
+      setTimeout(this.testConnection, 500);
+    });
+
   }
 
   render() {
+    if (this.state.ready === false){
+      return (<div className="jumbotron text-center">
+        <h3>Page loading. PostgreSQL DB and Heroku (slowly) starting up.</h3>
+        <h4>please enjoy this spinner while you wait...</h4>
+        <br />
+        <p><i className="fa fa-spinner fa-spin" style={{fontSize: "40px"}}></i></p>
+      </div>)
+    }
+
     return (
       <div className="container">
         <div className="row">
@@ -680,9 +691,10 @@ class App extends Component {
         <div className="row">
 
           <div className="col-xs-2"></div>
-
+          
           <div className="col-xs-8">
-            <p className="text-center">Made by <a href="https://github.com/eqmvii">eqmvii</a>. Server test: {this.state.data}.</p>
+            <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
+            <p className="text-center" style={{visibility: "hidden"}}>Server test: {this.state.data}.</p>
           </div>
 
           <div className="col-xs-2"></div>
