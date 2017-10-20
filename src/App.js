@@ -3,6 +3,7 @@
 // With a Node/Express/PostgreSQL backend 
 // By eqmvii - https://github.com/eqmvii
 // TODO: Try socket.io for websocket, try webworker for auto refresh, add a chatbot (tarot card?)
+// Unregister function in server.js
 
 import React, { Component } from 'react';
 import './App.css';
@@ -691,7 +692,7 @@ class App extends Component {
         <div className="row">
 
           <div className="col-xs-2"></div>
-          
+
           <div className="col-xs-8">
             <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
             <p className="text-center" style={{visibility: "hidden"}}>Server test: {this.state.data}.</p>

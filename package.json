@@ -1,6 +1,6 @@
 {
   "name": "echat",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "dependencies": {
     "express": "^4.16.2",
     "pg": "^7.3.0",
