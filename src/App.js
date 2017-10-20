@@ -12,7 +12,7 @@ import './App.css';
 var dbv = {
   refresh_modes: ['DDOS', 'Long Polling'],
   refresh_mode: 1,
-  refresh_rate: 350,
+  refresh_rate: 250,
   dbm: false,
   logged_in: false,
   username: "Eric",
@@ -51,10 +51,13 @@ class EntranceSplash extends Component {
     }
     return (
       <div className="text-center">
-        <h3>Welcome to echat! </h3>
+        <h2>Welcome to <strong><span id="e">e</span><span id="c">c</span><span id="h">h</span><span id="a">a</span><span id="t">t</span></strong> </h2>
         {error_message}
         <br />
+        <br />
         <form onSubmit={this.props.handleLogin}>
+        <label>Chose a username: </label>
+        <br />
           <input
             type="text"
             value={this.props.nameInput}
@@ -63,8 +66,10 @@ class EntranceSplash extends Component {
           />
           <br />
           <br />
-          <button type="submit" className="btn btn-primary btn-large" >Enter echat</button>
+          <button type="submit" className="btn btn-success btn-lg" ><strong>Enter Chat</strong></button>
         </form>
+        <br />
+        <br />
       </div>
     )
   }
@@ -160,7 +165,7 @@ class ChatApp extends Component {
     dbv.log("Login pressed!");
     // strip white space and @ symbols from username, distinguishes bot messags from user messages
     var username = this.state.nameInput.replace(/ /g, '');
-    var username = this.state.nameInput.replace(/@/g, '');
+    username = this.state.nameInput.replace(/@/g, '');
     sessionStorage.setItem('username', username);
     // Force user to enter a name
     if (username === ''){
@@ -496,7 +501,7 @@ class ChatHeader extends Component {
   render() {
     return (
       <div>
-        <h1>Welcome to echat, {this.props.user}! <button className="btn btn-danger pull-right" onClick={this.props.handleLogout}>Logout</button> </h1>
+        <h1>Welcome to <strong><span id="e">e</span><span id="c">c</span><span id="h">h</span><span id="a">a</span><span id="t">t</span></strong> {this.props.user}! <button className="btn btn-danger pull-right" onClick={this.props.handleLogout}><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Logout</button> </h1>
       </div>
     )
   }
@@ -518,9 +523,9 @@ class ControlBar extends Component {
           <button className="btn btn-primary" onClick={this.props.handleClearMessages}>Clear Chat</button>
           <button className="btn btn-secondary" onClick={this.props.handleLogout}>Logout</button>
           <button className="btn btn-warning" onClick={this.props.handleClearUsers}>Logout All</button>
+          <button className="btn btn-info" onClick={this.props.handleHTTPToggle}>Toggle DDOS/Long-Polling</button>
           <button className="btn btn-danger" onClick={this.props.handleSlower}>Slower Refresh</button>
           <button className="btn btn-success" onClick={this.props.handleFaster}>Faster Refresh</button>
-          <button className="btn btn-info" onClick={this.props.handleHTTPToggle}>Toggle DDOS/Long-Polling</button>
         </div>
         <div className="text-center">
           <br />
@@ -556,7 +561,6 @@ class UserList extends Component {
     return (
       <div>
         <div className="alert alert-success"><strong>Current users: </strong>{user_display_list}</div>
-        <br />
       </div>
     )
   }
@@ -702,6 +706,7 @@ class App extends Component {
           <div className="col-xs-8">
             <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
             <p className="text-center" style={{visibility: "hidden"}}>Server test: {this.state.data}.</p>
+            <AboutEchat />
           </div>
 
           <div className="col-xs-2"></div>
@@ -710,6 +715,52 @@ class App extends Component {
 
       </div>
     );
+  }
+}
+
+class AboutEchat extends Component {
+  render() {
+    return (
+      <div>
+        <h1>About echat</h1>
+        <p>The echat application is full stack live chat program. 
+          The front end is written in React, the back end is a combination of Node.js, Express, and PostgreSQL, and the whole thing is deployed via Heroku.</p>
+        <p>It was created as a "fun" hobby project to practice using Express/React/PostgreSQL - in other words, it's deliberately frivolous.</p>
+        <h3>Features</h3>
+        <p>Most basically, echat allows you to select a username and chat with everyone else currently using echat. Some specific features include:</p>
+        <ul>
+          <li><strong>Unique Usernames:</strong> a user can't login with a username that's already in use.</li>
+          <li><strong>Long Polling:</strong> auto refresh is accomplished with HTTP requests via long polling to reduce server load.</li>
+          <li><strong>Auto Logout:</strong> Users are kicked after a few minutes of inactivity.</li>
+          <li><strong>Auto Message Clearing:</strong>After a longer period of inactivity, all chat messages are also cleared from the database.</li>
+          </ul>
+        <h3>Debug Mode</h3>
+        <p>If you press the "Toggle Debug Mode" button, an array of buttons and diagnostic information will appear, in addition to enabling console logging of various debugging information.</p>
+        <ul>
+          <li><strong>Clear Chat:</strong> Deletes all chat messages.</li>
+          <li><strong>Logout:</strong> Logs out only the user that pressed the button out.</li>
+          <li><strong>Logout All:</strong> Logs out all active users and returns them to the login screen.</li>
+          <li><strong>Toggle DDOS/Long-Polling:</strong> Changes between Long Polling Mode (default) and DDOS Mode (...not recommended)
+            <ul>
+              <li><strong>Long Polling Mode: </strong>
+                An HTTP request is sent to the server, and then the server waits to respond until there are updates to the database to report to the client. 
+                A "no updates" response is sent after several seconds even if there is no change to the database to avoid HTTP timeout errors, particularly because of the Heroku platform.</li>
+              <li><strong>DDOS Mode: </strong> 
+                A new HTTP request is sent at the refresh interval, which ranges from as fast as almost 10 times per second to as slow as roughly once every 5 seconds.
+                This was the first way I thought about making a chat application, but has abysmal performance and scaling implications.
+                No points for guessing why I call it DDOS mode.</li>
+              </ul>
+              </li>
+          <li><strong>Slower refresh:</strong> Increases the frequency of HTTP requests for new messages (DDOS mode) or increases the time between long polling HTTP requests (Long-Polling Mode)</li>
+          <li><strong>Faster refresh:</strong> Reduced the frequency of HTTP requests for new messages (DDOS mode) or reduces the time between long polling HTTP requests (Long Polling Mode)</li>
+
+          </ul>
+          <br />
+          <br />
+          <br />
+      </div>
+      
+    )
   }
 }
 

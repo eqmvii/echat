@@ -2,7 +2,9 @@
 
 A simple chat program using React, Express, PostgreSQL and deployed to Heroku.
 
-By eqmvii 
+echat is deployed to https://eqmvii-echat.herokuapp.com
+
+By Eric Mancini (https://github.com/eqmvii) 
 
 ____
 
