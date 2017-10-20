@@ -10,10 +10,10 @@ var server_max_id = -1;
 var time_settings = {
     run_cleanup: (5 * 60 * 1000),
     kick_idle: (10 * 60 * 1000),
-    delete_chat: (20 * 60 * 1000)
+    delete_chat: (20 * 60 * 1000),
+    long_poll_rate: (333),
+    max_polls: 50
 }
-
-
 
 // set credentials based on local or production
 if (!process.env.PORT) {
@@ -91,8 +91,14 @@ function cleanup() {
             if (elapsed_time > time_settings.delete_chat) {
                 console.log("Idle timeout hit, deleting chat");
                 var delete_query_string = "DELETE FROM echat_messages;";
-                client.query(delete_query_string);
-                server_max_id = -1;
+                client.query(delete_query_string).then(response => {
+                    var reset_query_string = "ALTER SEQUENCE echat_messages_id_seq RESTART";
+                    client.query(reset_query_string).then(response => {
+                        server_max_id = -1;
+                    })
+
+                });
+                
             }
         });
 }
@@ -134,8 +140,11 @@ app.get('/clearhistory', function (req, res) {
     client.query('DELETE FROM echat_messages;', (err, response) => {
         if (err) throw err;
         //res.json(response.rows[0].name);
-        server_max_id = -1;
-        res.end();
+        var reset_query_string = "ALTER SEQUENCE echat_messages_id_seq RESTART";
+        client.query(reset_query_string).then(response => {
+            server_max_id = -1;
+            res.end();
+        })      
 
     });
 });
@@ -145,15 +154,24 @@ app.get('/clearusers', function (req, res) {
     console.log("clear users table endpoint hit");
     client.query('DELETE FROM echat_users;', (err, response) => {
         if (err) throw err;
-        res.end();
-
+        var query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
+        var values = ['   MASSLOG BOT   ', 'Somebody logged everyone out via debug mode!'];
+        console.log("It's query time! Query string / values: ");
+        console.log(query_string);
+        console.log(values);
+        client.query(query_string, values)
+            .then(response => {
+                server_max_id += 2;
+                res.end();
+            })      
+        
     });
 });
 
 
-// API endpoint for testing
+// Auto-refresh in DDOS mode
 app.get('/getmessages', function (req, res) {
-    var get_messages_response_object = {logout: false, rows: [], update: false, max_id: server_max_id};
+    var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id };
     // console.log("Get messages endpoint hit");
     // console.log(req.query);
     var max_id = parseInt(req.query.max_id, 10);
@@ -197,6 +215,90 @@ app.get('/getmessages', function (req, res) {
     })
 
 
+});
+
+// Auto-refresh in long polling mode
+app.get('/getmessageslong', function (req, res) {
+    var counter = 0;
+    var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id };
+    // console.log("Get messages endpoint hit");
+    // console.log(req.query);
+    var max_id = parseInt(req.query.max_id, 10);
+    // console.log("React max: " + max_id + " Server max: " + server_max_id);
+    // See if the user has been auto-logged out, and if so, boot them
+    var logged_query_string = "SELECT * FROM echat_users WHERE username = $1";
+    var values = [req.query.username];
+
+    client.query(logged_query_string, values).then((response) => {
+        if (response.rows.length === 0) {
+            console.log("###The user isn't logged in...");
+            get_messages_response_object.logout = true;
+            res.json(get_messages_response_object);
+        }
+        else {
+            console.log("@@@ Enter the time loop");
+            counter +=1;
+            setTimeout(timeLoop, time_settings.long_poll_rate);
+
+            /*
+            // If server is caught up, wait 
+            if (max_id === server_max_id) {
+                // console.log("React max: " + max_id + " Server max: " + server_max_id);
+                // console.log("React matches server, send nothing");
+                setTimeout(timeLoop, 200);
+                //res.json(get_messages_response_object);
+            }
+            else {
+                // console.log("React max: " + max_id + " Server max: " + server_max_id);
+                // console.log("React might be behind, send update!");
+                client.query('SELECT * FROM echat_messages ORDER BY stamp desc LIMIT 20', (err, response) => {
+                    // console.log("Max: " + response.rows[0].id);
+                    // console.log("Min: " + response.rows[response.rows.length - 1].id);
+                    if (response.rows.length > 0) {
+                        server_max_id = response.rows[0].id;
+                    }
+                    if (err) throw err;
+                    get_messages_response_object.update = true;
+                    get_messages_response_object.rows = response.rows;
+                    res.json(get_messages_response_object);
+                });
+            }
+            */
+        }
+    });
+
+    function timeLoop() {
+        console.log("@@@ Timeloop called " + counter + " time(s), can go " + time_settings.max_polls + " times!");
+        counter += 1;
+        console.log("Server_max_id: " + server_max_id + "; max_id: " + max_id);
+        if (max_id === server_max_id && counter < time_settings.max_polls) {
+            console.log("@@@ No updates yet...");
+            // check again in 200ms
+            setTimeout(timeLoop, time_settings.long_poll_rate);
+        }
+        else if (counter < time_settings.max_polls) {
+            // console.log("React max: " + max_id + " Server max: " + server_max_id);
+            // console.log("React might be behind, send update!");
+            console.log("@@@ New messages! Retrieve and send them.");
+            client.query('SELECT * FROM echat_messages ORDER BY stamp desc LIMIT 20', (err, response) => {
+                // console.log("Max: " + response.rows[0].id);
+                // console.log("Min: " + response.rows[response.rows.length - 1].id);
+                if (response.rows.length > 0) {
+                    server_max_id = response.rows[0].id;
+                }
+                if (err) throw err;
+                get_messages_response_object.update = true;
+                get_messages_response_object.rows = response.rows;
+                res.json(get_messages_response_object);
+            });
+
+        }
+        else {
+            console.log("No updates, but we hit the limit, so let's send back a nothingburger");
+            res.json(get_messages_response_object);
+        }
+
+    }
 });
 
 // API endpoint for testing
@@ -398,15 +500,19 @@ app.post('/logout', function (req, res) {
             if (err) {
                 console.log(err);
             };
-            res.json("ok all is good thank you");
+            query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
+            values = ['   GOODBYE BOT   ', 'Goodbye ' + body.username + '!'];
+            client.query(query_string, values)
+                .then(response => {
+                    server_max_id += 2;
+                    res.end();
+                });  
+            
         });
     });
 
 
 });
-
-// TODO: Cleanup function
-// Logout a user who hasn't sent a message in 10 minutes
 
 // TODO: Investigate using sessions for logging in (maybe for the next app?)
 
