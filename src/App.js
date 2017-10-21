@@ -37,13 +37,6 @@ var dbv = {
 
 // component to render the introduction / login screen
 class EntranceSplash extends Component {
-  constructor(props) {
-    super(props);
-    // bind handle functions
-    //this.handleSubmit = this.handleSubmit.bind(this);
-    this.state = { inputval: '' }
-  }
-
   render() {
     var error_message = (<div></div>);
     if (this.props.login_error !== false) {
@@ -93,6 +86,7 @@ class ChatApp extends Component {
     this.handleHTTPToggle = this.handleHTTPToggle.bind(this);
     this.handleDebugMode = this.handleDebugMode.bind(this);
 
+    // initial state configuration
     this.state = {
       username: false,
       messages: [],
@@ -106,7 +100,6 @@ class ChatApp extends Component {
       request_counter: 0,
       debug_mode: dbv.dbm
     }
-
   }
 
   handleDebugMode() {
@@ -128,8 +121,7 @@ class ChatApp extends Component {
       // start DDOS
       this.refresh_interval = setInterval(
         () => this.refresh(),
-        dbv.refresh_rate
-      );
+        dbv.refresh_rate);
     }
   }
 
@@ -188,8 +180,7 @@ class ChatApp extends Component {
         } else {
           this.setState({ login_error: 'Username already taken', nameInput: '' });
         }
-      }).catch(error => console.log(error))
-      ;
+      }).catch(error => console.log(error));
 
   }
 
@@ -275,10 +266,8 @@ class ChatApp extends Component {
     }
   }
 
-  // Currenlt uses dumb short horrible polling
-  // TODO: Use long polling, explore socket.io
+  // Deprecated / optional - rapid short horrible polling
   refresh() {
-
     // Don't fetch messages if not logged in
     if (!this.state.logged_in) {
       dbv.log("Not logged in; not fetching getting data");
@@ -430,7 +419,6 @@ class ChatApp extends Component {
         setTimeout(this.longPoll, 1000);
         dbv.log(error);
       });
-
   }
 
   componentDidMount() {
@@ -483,7 +471,6 @@ class ChatApp extends Component {
           </div>
         </div>
       )
-
     }
     // otherwise, by default, render the login component
     return (
@@ -494,7 +481,6 @@ class ChatApp extends Component {
         login_error={this.state.login_error}
       />);
   }
-
 }
 
 class ChatHeader extends Component {
@@ -556,7 +542,6 @@ class UserList extends Component {
       if (i < (this.props.users.length - 1)) {
         user_display_list += ', ';
       }
-
     }
     return (
       <div>
@@ -588,7 +573,6 @@ class Chatroom extends Component {
       }
     }
 
-
     // tag and render the list of messages
     // TODO: Make the key the messages unique key from the db
     var messagesToDisplay = [];
@@ -605,7 +589,6 @@ class Chatroom extends Component {
         //newMessage = (<div key={i}>| {message_list[i]}</div>);
         newMessage = (<br key={i} />);
       }
-
 
       // dbv.log(newMessage);
       messagesToDisplay.push(newMessage);
@@ -640,7 +623,6 @@ class ChatTextInput extends Component {
   }
 }
 
-
 // container component for the entire application
 class App extends Component {
   constructor(props) {
@@ -651,7 +633,6 @@ class App extends Component {
     // Testing/using different this binding methods for learning and testing comprehension
     // var that = this;
     this.testConnection = this.testConnection.bind(this); 
-
     this.testConnection();    
   }
 
@@ -732,7 +713,7 @@ class AboutEchat extends Component {
           <li><strong>Unique Usernames:</strong> a user can't login with a username that's already in use.</li>
           <li><strong>Long Polling:</strong> auto refresh is accomplished with HTTP requests via long polling to reduce server load.</li>
           <li><strong>Auto Logout:</strong> Users are kicked after a few minutes of inactivity.</li>
-          <li><strong>Auto Message Clearing:</strong>After a longer period of inactivity, all chat messages are also cleared from the database.</li>
+          <li><strong>Auto Message Clearing:</strong> After a longer period of inactivity, all chat messages are also cleared from the database.</li>
           </ul>
         <h3>Debug Mode</h3>
         <p>If you press the "Toggle Debug Mode" button, an array of buttons and diagnostic information will appear, in addition to enabling console logging of various debugging information.</p>
