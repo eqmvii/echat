@@ -14,6 +14,8 @@ import './App.css';
 // component import
 import ChatApp from './components/ChatApp.js';
 import AboutEchat from './components/AboutEchat.js';
+import ReduxTestContainer from './containers/ReduxTestContainer';
+
 
 /*
 // Debug variables. console.log for togglable non-error logging via dbv.dbm
@@ -105,6 +107,8 @@ class App extends Component {
             <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
             <p className="text-center" style={{ visibility: "hidden" }}>Server test: {this.state.data}.</p>
             <AboutEchat />
+            <ReduxTestContainer />     
+
           </div>
 
           <div className="col-xs-2"></div>

@@ -1,0 +1,4 @@
+export const TEST_COUNTER_UP = 'TEST_COUNTER_UP';
+export const TEST_COUNTER_UP = 'TEST_COUNTER_DOWN';
+
+export const FASTER_REFRESH = 'FASTER_REFRESH';

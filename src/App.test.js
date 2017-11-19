@@ -19,6 +19,10 @@ import ToggleButton from './components/ToggleButton.js';
 import ControlBar from './components/ControlBar.js';
 import Chatroom from './components/Chatroom.js';
 
+
+
+// TODO import from initial state
+/*
 let mock_state = {
   max_messages: 16,
   username: false,
@@ -35,6 +39,8 @@ let mock_state = {
   refresh_mode: 1,
   refresh_name: ["DDOS", "Long Polling"]
 }
+*/
+import mock_state from './reducers/initialState';
 
 // App has issues testing because of its repeated HTTP request fails
 /*
