@@ -5,10 +5,18 @@
 // TODO: Try socket.io for websocket, try webworker for auto refresh, add a chatbot (tarot card?)
 // Unregister function in server.js
 
+// library import
 import React, { Component } from 'react';
+
+// style import
 import './App.css';
 
-// Debug variables. Dbv.log for togglable non-error logging via dbv.dbm
+// component import
+import ChatApp from './components/ChatApp.js';
+import AboutEchat from './components/AboutEchat.js';
+
+/*
+// Debug variables. console.log for togglable non-error logging via dbv.dbm
 var dbv = {
   refresh_modes: ['DDOS', 'Long Polling'],
   refresh_mode: 1,
@@ -34,594 +42,7 @@ var dbv = {
     }
   }
 }
-
-// component to render the introduction / login screen
-class EntranceSplash extends Component {
-  render() {
-    var error_message = (<div></div>);
-    if (this.props.login_error !== false) {
-      error_message = <div className="alert alert-danger"><strong>Error:</strong> {this.props.login_error}</div>
-    }
-    return (
-      <div className="text-center">
-        <h2>Welcome to <strong><span id="e">e</span><span id="c">c</span><span id="h">h</span><span id="a">a</span><span id="t">t</span></strong> </h2>
-        {error_message}
-        <br />
-        <br />
-        <form onSubmit={this.props.handleLogin}>
-        <label>Chose a username: </label>
-        <br />
-          <input
-            type="text"
-            value={this.props.nameInput}
-            onChange={this.props.handleNameTyping}
-            maxLength="12"
-          />
-          <br />
-          <br />
-          <button type="submit" className="btn btn-success btn-lg" ><strong>Enter Chat</strong></button>
-        </form>
-        <br />
-        <br />
-      </div>
-    )
-  }
-}
-
-// master stateful component that tracks everything and passes change functions
-class ChatApp extends Component {
-  constructor(props) {
-    super(props);
-    // bind handle functions
-    this.handleLogin = this.handleLogin.bind(this);
-    this.handleNameTyping = this.handleNameTyping.bind(this);
-    this.handleChatTyping = this.handleChatTyping.bind(this);
-    this.handleLogout = this.handleLogout.bind(this);
-    this.handleChatSend = this.handleChatSend.bind(this);
-    this.handleClearMessages = this.handleClearMessages.bind(this);
-    this.handleClearUsers = this.handleClearUsers.bind(this);
-    this.handleSlower = this.handleSlower.bind(this);
-    this.handleFaster = this.handleFaster.bind(this);
-    this.longPoll = this.longPoll.bind(this);
-    this.handleHTTPToggle = this.handleHTTPToggle.bind(this);
-    this.handleDebugMode = this.handleDebugMode.bind(this);
-
-    // initial state configuration
-    this.state = {
-      username: false,
-      messages: [],
-      nameInput: '',
-      chatInput: '',
-      users: [],
-      logged_in: false,
-      login_error: false,
-      refresh_rate: dbv.refresh_rate,
-      max_id: 0,
-      request_counter: 0,
-      debug_mode: dbv.dbm
-    }
-  }
-
-  handleDebugMode() {
-    dbv.dbm = !dbv.dbm;
-    this.setState({debug_mode: dbv.dbm});
-  }
-
-  // switch between DDOS and long-polling
-  handleHTTPToggle() {
-    // If current mode is DDOS:
-    if (dbv.refresh_mode === 0) {
-      dbv.refresh_mode = 1;
-      clearInterval(this.refresh_interval);
-      this.longPoll();
-    }
-    // If current mode is long-polling: 
-    else if (dbv.refresh_mode === 1) {
-      dbv.refresh_mode = 0;
-      // start DDOS
-      this.refresh_interval = setInterval(
-        () => this.refresh(),
-        dbv.refresh_rate);
-    }
-  }
-
-  handleSlower() {
-    dbv.slower();
-    if (dbv.refresh_mode === 0) {
-      clearInterval(this.refresh_interval);
-      this.refresh_interval = setInterval(() => this.refresh(), dbv.refresh_rate);
-    }
-    this.setState({ refresh_rate: dbv.refresh_rate });
-  }
-
-  handleFaster() {
-    dbv.faster();
-    if (dbv.refresh_mode === 0) {
-      clearInterval(this.refresh_interval);
-      this.refresh_interval = setInterval(() => this.refresh(), dbv.refresh_rate);
-    }
-    this.setState({ refresh_rate: dbv.refresh_rate });
-  }
-
-  handleNameTyping(event) {
-    this.setState({ nameInput: event.target.value })
-  }
-
-  handleChatTyping(event) {
-    this.setState({ chatInput: event.target.value })
-  }
-
-  // TODO: Add this kind of error handling elsewhere 
-  handleLogin(event) {
-    event.preventDefault();
-    dbv.log("Login pressed!");
-    // strip white space and @ symbols from username, distinguishes bot messags from user messages
-    var username = this.state.nameInput.replace(/ /g, '');
-    username = this.state.nameInput.replace(/@/g, '');
-    sessionStorage.setItem('username', username);
-    // Force user to enter a name
-    if (username === ''){
-      this.setState({login_error: "Please enter a username"});
-      return;
-    }
-    // send login info to the backend server
-    fetch('/login', { method: "POST", body: JSON.stringify({ username: username }) })
-      .then(res => {
-        if (res.ok) {
-          return res.json()
-        } else { throw Error(res.statusText) }
-      }
-      )
-      .then(res => {
-        // if (!res){ return false}
-        if (res.duplicate === false) {
-          this.setState({ username: username, logged_in: true, max_id: 0, login_error: false, nameInput: '' });
-          this.longPoll();
-        } else {
-          this.setState({ login_error: 'Username already taken', nameInput: '' });
-        }
-      }).catch(error => console.log(error));
-
-  }
-
-  handleLogout() {
-    var delete_name = this.state.username;
-
-    // Send logout to the server
-    fetch('/logout', { method: "POST", body: JSON.stringify({ username: delete_name }) })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else { throw Error(res.statusText) }
-      }).catch(error => console.log(error));
-
-    this.setState({ username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false });
-
-    sessionStorage.removeItem('username');
-    dbv.log("Logout pressed!");
-  }
-
-  handleChatSend(event) {
-    event.preventDefault();
-    // dbv.log("handleChatSend was called!");
-    dbv.log(this.state.chatInput);
-    let message = this.state.chatInput;
-    let username = this.state.username;
-
-    /*
-    // Front-end only message list population
-    // This might cause weird bugs in message list order
-    // Or it might work just fine!
-    let msgList = this.state.messages.slice();
-    msgList.push({ message: this.state.chatInput, stamp: Date.now(), username: username });
-    this.setState({ messages: msgList, chatInput: '' })
-    dbv.log(msgList);
-    */
-
-    // send posted message info to the backend server
-    fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
-      .then(res => {
-        if (res.ok) {
-          this.setState({ chatInput: '' });
-        } else { throw Error(res.statusText) }
-      }).catch(error => console.log(error));
-  }
-
-  handleClearMessages() {
-    fetch('/clearhistory')
-      .then(res => {
-        if (res.ok) {
-          this.setState({ max_id: 0 })
-        }
-        else { throw Error(res.statusText) }
-      }).catch(error => console.log(error));
-  }
-
-  handleClearUsers() {
-    fetch('/clearusers')
-      .then(res => {
-        if (!res.ok) {
-          throw Error(res.statusText)
-        }
-      }).catch(error => console.log(error));
-  }
-
-  componentWillMount() {
-    // Check to see if user already logged in
-    var stored_username = sessionStorage.getItem('username');
-    dbv.log("Session username stored as: ");
-    dbv.log(stored_username);
-    // get refresh going is user leaves and comes back
-    if (stored_username) {
-      if (dbv.refresh_mode === 0) {
-        // start DDOS
-        this.refresh_interval = setInterval(
-          () => this.refresh(),
-          dbv.refresh_rate
-        );
-      } else if (dbv.refresh_mode ===1) {
-        this.longPoll();
-      }
-      this.setState({ username: stored_username, logged_in: true, max_id: 0 });
-    }
-  }
-
-  // Deprecated / optional - rapid short horrible polling
-  refresh() {
-    // Don't fetch messages if not logged in
-    if (!this.state.logged_in) {
-      dbv.log("Not logged in; not fetching getting data");
-      //dbv.log(this.state.logged_in);
-      return;
-    }
-    // track requests
-    var prior_counter = this.state.request_counter;
-    prior_counter += 1;
-    this.setState({ request_counter: prior_counter });
-    //dbv.log("Tick...");
-    // get recipe data from the server asynchronously, state will refresh when it lands
-    var refresh_route = '/getmessages?max_id=';
-    refresh_route += this.state.max_id;
-    refresh_route += "&username=";
-    refresh_route += this.state.username;
-    dbv.log(refresh_route);
-    fetch(refresh_route)
-      .then(res => {
-        if (res.ok) {
-          return res.json()
-        } else { throw Error(res.statusText) }
-      }
-      )
-      //.then(res => { dbv.log(res); this.setState({ data: res }) })
-      .then(res => {
-        dbv.log("refresh response object:");
-        dbv.log(res);
-        // if the logout command was send, logout
-        if (res.logout) {
-          dbv.log("Logout command received!");
-          //this.setState({logged_in: false, username: false, max_id: 0});
-          this.setState({ login_error: "You have been Logged out." });
-          this.handleLogout();
-          return;
-        }
-
-        // If there are new messages, add them to React's state
-        if (res.update) {
-          var max_id;
-          if (res.rows.length > 0) {
-            max_id = res.rows[0].id;
-          } else {
-            max_id = 0;
-          }
-          this.setState({ messages: res.rows.reverse(), max_id: max_id });
-        }
-        // dbv.log("Max id is: " + max_id);
-        else {
-          dbv.log("No new messages from the server or no messages at all");
-          // Make sure client shows blank screen if screen recently refreshed
-          if (this.state.max_id === 0) {
-            this.setState({ messages: [] });
-            dbv.log("Set messages state to empty array");
-          }
-        }
-      }).catch(error => console.log(error));
-    //.then(() => dbv.log(this.state));
-
-    fetch('/getusers')
-      .then(res => {
-        if (res.ok) {
-          return res.json()
-        } else { throw Error(res.statusText) }
-      })
-      //.then(res => { dbv.log(res); this.setState({ data: res }) })
-      .then(res => {
-        this.setState({ users: res });
-      }).catch(error => console.log(error));
-  }
-
-  longPoll() {
-    // Don't fetch messages if not logged in
-    if (!this.state.logged_in) {
-      dbv.log("Not logged in; not longfetching data");
-      //dbv.log(this.state.logged_in);
-      setTimeout(this.longPoll, dbv.refresh_rate);
-      return;
-    }
-    var prior_counter = this.state.request_counter;
-    prior_counter += 1;
-    this.setState({ request_counter: prior_counter });
-
-    fetch('/getusers')
-      .then(res => {
-        if (res.ok) {
-          return res.json()
-        } else {
-          throw Error(res.statusText)
-        }
-      })
-      //.then(res => { dbv.log(res); this.setState({ data: res }) })
-      .then(res => {
-        this.setState({ users: res });
-      }).catch(error => {
-        // Try again since there's likely a connection issue
-        // setTimeout(this.longPoll, 1000);
-        console.log(error);
-      });
-
-    dbv.log("Attempting long polling FC!");
-    // fetch longpoll route
-    var refresh_route = '/getmessageslong?max_id=';
-    refresh_route += this.state.max_id;
-    refresh_route += "&username=";
-    refresh_route += this.state.username;
-    dbv.log(refresh_route);
-    fetch(refresh_route)
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          dbv.log("Server is super broken");
-          throw Error(res.statusText);
-        }
-      })
-      .then(res => {
-        dbv.log("Received a longpoll response!");
-        dbv.log(res);
-
-        // if the logout command was send, logout
-        if (res.logout) {
-          dbv.log("Logout command received!");
-          //this.setState({logged_in: false, username: false, max_id: 0});
-          this.setState({ login_error: "You have logged out" });
-          this.handleLogout();
-          return;
-        }
-
-        // If the response is an update
-        if (res.update) {
-          var max_id;
-          if (res.rows.length > 0) {
-            max_id = res.rows[0].id;
-          } else {
-            max_id = 0;
-          }
-          this.setState({ messages: res.rows.reverse(), max_id: max_id });
-        }
-
-        // test code only
-        this.setState({ max_id: res.max_id });
-
-        setTimeout(this.longPoll, dbv.refresh_rate);
-      })
-      .catch(error => {
-        // Try again since there's likely a connection issue
-        console.log("Long poll error, trying again...");
-        setTimeout(this.longPoll, 1000);
-        dbv.log(error);
-      });
-  }
-
-  componentDidMount() {
-    if (dbv.refresh_mode === 0) {
-      this.refresh_interval = setInterval(
-        () => this.refresh(),
-        dbv.refresh_rate
-      );
-    } else if (dbv.refresh_mode === 1) {
-      dbv.log("Component mounted, set to long polling though");
-    }
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.refresh_interval);
-  }
-
-  render() {
-    // Conditional rendering fork: 
-    // not logged in -> login screen
-    // logged in -> chat application
-    if (this.state.username) {
-      return (
-        <div>
-          <ChatHeader
-            handleLogout={this.handleLogout}
-            user={this.state.username}
-          />
-          <UserList users={this.state.users} />
-          <Chatroom messages={this.state.messages} />
-          <ChatTextInput
-            handleChatTyping={this.handleChatTyping}
-            handleChatSend={this.handleChatSend}
-            chatInput={this.state.chatInput}
-          />
-          <br />
-          <br />
-          <ControlBar
-            handleClearMessages={this.handleClearMessages}
-            handleClearUsers={this.handleClearUsers}
-            handleLogout={this.handleLogout}
-            parent_state={this.state}
-            handleSlower={this.handleSlower}
-            handleFaster={this.handleFaster}
-            handleHTTPToggle={this.handleHTTPToggle}
-          />
-          <div className="text-center">
-            <br />
-            <ToggleButton handleDebugMode={this.handleDebugMode}/>
-          </div>
-        </div>
-      )
-    }
-    // otherwise, by default, render the login component
-    return (
-      <EntranceSplash
-        handleLogin={this.handleLogin}
-        handleNameTyping={this.handleNameTyping}
-        nameInput={this.state.nameInput}
-        login_error={this.state.login_error}
-      />);
-  }
-}
-
-class ChatHeader extends Component {
-  render() {
-    return (
-      <div>
-        <h1>Welcome to <strong><span id="e">e</span><span id="c">c</span><span id="h">h</span><span id="a">a</span><span id="t">t</span></strong> {this.props.user}! <button className="btn btn-danger pull-right" onClick={this.props.handleLogout}><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Logout</button> </h1>
-      </div>
-    )
-  }
-}
-
-class ToggleButton extends Component {
-  render() {
-    return (
-      <button onClick={this.props.handleDebugMode} className="btn btn-info">Toggle Debug Mode</button>
-    )
-  }
-}
-
-class ControlBar extends Component {
-  render() {
-    if (this.props.parent_state.debug_mode) {
-      return (<div>
-        <div className="text-center btn-toolbar">
-          <button className="btn btn-primary" onClick={this.props.handleClearMessages}>Clear Chat</button>
-          <button className="btn btn-secondary" onClick={this.props.handleLogout}>Logout</button>
-          <button className="btn btn-warning" onClick={this.props.handleClearUsers}>Logout All</button>
-          <button className="btn btn-info" onClick={this.props.handleHTTPToggle}>Toggle DDOS/Long-Polling</button>
-          <button className="btn btn-danger" onClick={this.props.handleSlower}>Slower Refresh</button>
-          <button className="btn btn-success" onClick={this.props.handleFaster}>Faster Refresh</button>
-        </div>
-        <div className="text-center">
-          <br />
-          <h3>Debug Information (open console for more)</h3>
-          <ul className="text-left">
-            <li><strong>HTTP refresh requests:</strong> {this.props.parent_state.request_counter}</li>
-            <li><strong>Refresh mode:</strong> {dbv.refresh_modes[dbv.refresh_mode]}</li>
-            <li><strong>Refresh every: </strong> {this.props.parent_state.refresh_rate / 1000} seconds </li>
-            <li><strong>Your username:</strong> {this.props.parent_state.username}</li>
-            <li><strong>Messages:</strong> {this.props.parent_state.messages.length}</li>
-            <li><strong>Users:</strong> {this.props.parent_state.users.length}</li>
-            <li><strong>Highest message ID:</strong> {this.props.parent_state.max_id}</li>
-          </ul>
-          <br />
-        </div>
-      </div>
-      )
-    }
-    else { return false }
-  }
-}
-
-class UserList extends Component {
-  render() {
-    var user_display_list = '';
-    for (let i = 0; i < this.props.users.length; i++) {
-      user_display_list += this.props.users[i].username;
-      if (i < (this.props.users.length - 1)) {
-        user_display_list += ', ';
-      }
-    }
-    return (
-      <div>
-        <div className="alert alert-success"><strong>Current users: </strong>{user_display_list}</div>
-      </div>
-    )
-  }
-}
-
-class Chatroom extends Component {
-  render() {
-    var padding = dbv.max_messages - this.props.messages.length;
-    var message_list = this.props.messages.slice();
-
-    // If no messages yet, render nothing
-    if (this.props.messages.length < dbv.max_messages) {
-      // return (<div><br /><br /><br /></div>);
-      for (let i = 0; i < padding; i++) {
-        // dbv.log("doing padding");
-        message_list.push({ username: '', message: '' });
-      }
-    }
-
-    // truncate!
-    var truncate = this.props.messages.length - dbv.max_messages;
-    if (this.props.messages.length > dbv.max_messages) {
-      for (let i = 0; i < truncate; i++) {
-        message_list.shift();
-      }
-    }
-
-    // tag and render the list of messages
-    // TODO: Make the key the messages unique key from the db
-    var messagesToDisplay = [];
-    var newMessage, time, time_formatted;
-    for (let i = 0; i < message_list.length; i++) {
-      if (message_list[i].message !== '') {
-        time = new Date(message_list[i].stamp);
-        //dbv.log(time);
-        // time_formatted = time.getHours() + ":" + time.getMinutes() + " ";
-        time_formatted = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " ";
-        newMessage = (<div key={i}>{time_formatted}&#60;<strong>{message_list[i].username}</strong>&#62; {message_list[i].message}</div>);
-      }
-      else {
-        //newMessage = (<div key={i}>| {message_list[i]}</div>);
-        newMessage = (<br key={i} />);
-      }
-
-      // dbv.log(newMessage);
-      messagesToDisplay.push(newMessage);
-    }
-    return (
-      <div id="chatroom">
-
-        {messagesToDisplay}
-
-        <br />
-      </div>
-    )
-  }
-}
-
-class ChatTextInput extends Component {
-  render() {
-    return (
-      <div>
-        <form onSubmit={this.props.handleChatSend}>
-          <label>Message</label>
-          <input
-            type="text"
-            value={this.props.chatInput}
-            onChange={this.props.handleChatTyping}
-            maxLength="80"
-          ></input>
-          <button type="submit" className="btn btn-primary">Send</button>
-        </form>
-      </div>
-    )
-  }
-}
+*/
 
 // container component for the entire application
 class App extends Component {
@@ -632,37 +53,36 @@ class App extends Component {
     // bind this for use in below callback
     // Testing/using different this binding methods for learning and testing comprehension
     // var that = this;
-    this.testConnection = this.testConnection.bind(this); 
-    this.testConnection();    
+    this.testConnection = this.testConnection.bind(this);
+    this.testConnection();
   }
 
-  testConnection(){
+  testConnection() {
     // test connection to the server by fetching data to display 
     fetch('/test')
-    .then(res => {
-      if (res.ok) {
-        return res.json();
-      } else {
-        throw Error(res.statusText)
-      }
-    })
-    .then(res => {
-      dbv.log(res);
-      this.setState({ data: res, ready: true });
-    }).catch(error => {
-      console.log(error);
-      setTimeout(this.testConnection, 500);
-    });
-
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw Error(res.statusText)
+        }
+      })
+      .then(res => {
+        console.log(res);
+        this.setState({ data: res, ready: true });
+      }).catch(error => {
+        console.log(error);
+        setTimeout(this.testConnection, 500);
+      });
   }
 
   render() {
-    if (this.state.ready === false){
+    if (this.state.ready === false) {
       return (<div className="jumbotron text-center">
         <h3>Page loading. PostgreSQL DB and Heroku (slowly) starting up.</h3>
         <h4>please enjoy this spinner while you wait...</h4>
         <br />
-        <p><i className="fa fa-spinner fa-spin" style={{fontSize: "40px"}}></i></p>
+        <p><i className="fa fa-spinner fa-spin" style={{ fontSize: "38px" }}></i></p>
       </div>)
     }
 
@@ -670,14 +90,11 @@ class App extends Component {
       <div className="container">
         <div className="row">
 
-          <div className="col-xs-2"></div>
-          <div className="col-xs-8">
+          <div className="col-xs-8 col-xs-offset-2">
             <br />
             <ChatApp />
             <br />
-          </div>
-
-          <div className="col-xs-2"></div>
+          </div>         
 
         </div>
         <div className="row">
@@ -686,7 +103,7 @@ class App extends Component {
 
           <div className="col-xs-8">
             <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
-            <p className="text-center" style={{visibility: "hidden"}}>Server test: {this.state.data}.</p>
+            <p className="text-center" style={{ visibility: "hidden" }}>Server test: {this.state.data}.</p>
             <AboutEchat />
           </div>
 
@@ -696,52 +113,6 @@ class App extends Component {
 
       </div>
     );
-  }
-}
-
-class AboutEchat extends Component {
-  render() {
-    return (
-      <div>
-        <h1>About echat</h1>
-        <p>The echat application is full stack live chat program. 
-          The front end is written in React, the back end is a combination of Node.js, Express, and PostgreSQL, and the whole thing is deployed via Heroku.</p>
-        <p>It was created as a "fun" hobby project to practice using Express/React/PostgreSQL - in other words, it's deliberately frivolous.</p>
-        <h3>Features</h3>
-        <p>Most basically, echat allows you to select a username and chat with everyone else currently using echat. Some specific features include:</p>
-        <ul>
-          <li><strong>Unique Usernames:</strong> a user can't login with a username that's already in use.</li>
-          <li><strong>Long Polling:</strong> auto refresh is accomplished with HTTP requests via long polling to reduce server load.</li>
-          <li><strong>Auto Logout:</strong> Users are kicked after a few minutes of inactivity.</li>
-          <li><strong>Auto Message Clearing:</strong> After a longer period of inactivity, all chat messages are also cleared from the database.</li>
-          </ul>
-        <h3>Debug Mode</h3>
-        <p>If you press the "Toggle Debug Mode" button, an array of buttons and diagnostic information will appear, in addition to enabling console logging of various debugging information.</p>
-        <ul>
-          <li><strong>Clear Chat:</strong> Deletes all chat messages.</li>
-          <li><strong>Logout:</strong> Logs out only the user that pressed the button out.</li>
-          <li><strong>Logout All:</strong> Logs out all active users and returns them to the login screen.</li>
-          <li><strong>Toggle DDOS/Long-Polling:</strong> Changes between Long Polling Mode (default) and DDOS Mode (...not recommended)
-            <ul>
-              <li><strong>Long Polling Mode: </strong>
-                An HTTP request is sent to the server, and then the server waits to respond until there are updates to the database to report to the client. 
-                A "no updates" response is sent after several seconds even if there is no change to the database to avoid HTTP timeout errors, particularly because of the Heroku platform.</li>
-              <li><strong>DDOS Mode: </strong> 
-                A new HTTP request is sent at the refresh interval, which ranges from as fast as almost 10 times per second to as slow as roughly once every 5 seconds.
-                This was the first way I thought about making a chat application, but has abysmal performance and scaling implications.
-                No points for guessing why I call it DDOS mode.</li>
-              </ul>
-              </li>
-          <li><strong>Slower refresh:</strong> Increases the frequency of HTTP requests for new messages (DDOS mode) or increases the time between long polling HTTP requests (Long-Polling Mode)</li>
-          <li><strong>Faster refresh:</strong> Reduced the frequency of HTTP requests for new messages (DDOS mode) or reduces the time between long polling HTTP requests (Long Polling Mode)</li>
-
-          </ul>
-          <br />
-          <br />
-          <br />
-      </div>
-      
-    )
   }
 }
 
