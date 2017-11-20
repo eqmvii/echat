@@ -2,7 +2,7 @@ let timestamp = new Date();
 
 export default {
     max_messages: 16,
-    username: "Initial State Username",
+    username: false,
     messages: [],
     nameInput: '',
     chatInput: '',

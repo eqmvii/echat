@@ -23,7 +23,7 @@ const rootReducer = (state = initialState, action) => {
                this.refresh_interval = setInterval(() => this.refresh(), old_rate - 100);
            }
            */
-            console.log("$REDUX: Sped up!");
+            // console.log("$REDUX: Sped up!");
             //return {counter: state.counter - 1};
             return Object.assign({}, state, { refresh_rate: new_rate })
             break;
@@ -33,11 +33,11 @@ const rootReducer = (state = initialState, action) => {
             if (old_rate <= 5000) {
                 new_rate += 100;
             }
-            console.log("$REDUX: Slow down!");
+            // console.log("$REDUX: Slow down!");
             return Object.assign({}, state, { refresh_rate: new_rate })
             break;
         case 'HTTP_TOGGLE':
-            console.log("HTTP Toggle pressed...");
+            // console.log("HTTP Toggle pressed...");
             var new_mode;
             if (state.refresh_mode === 0) {
                 new_mode = 1;
@@ -49,21 +49,46 @@ const rootReducer = (state = initialState, action) => {
             return Object.assign({}, state, { refresh_mode: new_mode })
             break;
         case 'UPDATE_USER_LIST':
-            console.log("@~@~@~@~@~@ USER LIST UPDATE REDUCER CALLED");
-            console.log(action);
+            // console.log("@~@~@~@~@~@ USER LIST UPDATE REDUCER CALLED");
+            // console.log(action);
             // Merge new list of users into old list of users
-            if (action.error === false){
-            return Object.assign({}, state, { users: action.payload });
+            if (action.error === false) {
+                return Object.assign({}, state, { users: action.payload });
             }
             else {
                 console.log(action.error_message);
-                return Object.assign({}, state, { users: [{username: "Error pulling user list... server connection issue? "}] });                
-            }           
+                return Object.assign({}, state, { users: [{ username: "Error pulling user list... server connection issue? " }] });
+            }
             break;
         case 'FETCH_USERS':
-            console.log("@~@~@~@~@~@ FETCH USERS  REDUCER CALLED");
-            console.log(action);
+            // console.log("@~@~@~@~@~@ FETCH USERS  REDUCER CALLED");
+            // console.log(action);
             return state;
+            break;
+        case 'TOGGLE_DEBUG_MODE':
+            // console.log("@~@~@~ Toggle Debug Mode ~@~@~@~@");
+            var new_debug_mode = !state.debug_mode;
+            return Object.assign({}, state, { debug_mode: new_debug_mode });
+            break;
+        case 'LOGIN':
+            if (action.error === false && action.done === true) {
+                // this.setState({ username: username, logged_in: true, max_id: 0, login_error: false, nameInput: '' });
+                return Object.assign({}, state, { username: action.username, logged_in: true, max_id: 0, login_error: false });
+            }
+            else {
+                return state;
+            }
+            break;
+        case 'LOGOUT':
+            // this.setState({ username: false, messages: [], nameInput: '', chatInput: '', users: [], logged_in: false });
+            return Object.assign({}, state, { username: false, messages: [], logged_in: false });
+            break;
+        case 'REFRESH':
+            // this.setState({ messages: res.rows.reverse(), max_id: max_id });
+            // dispatch(refreshMessages(res.rows.reverse(), max_id));
+            console.log("Refresh Reducer Switch Called");
+            console.log(action);
+            return Object.assign({}, state, { messages: action.messages, max_id: action.max_id });
             break;
         default:
             return state
