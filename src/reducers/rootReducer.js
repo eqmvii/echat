@@ -4,10 +4,10 @@ import initialState from './initialState.js';
 const rootReducer = (state = initialState, action) => {
     switch (action.type) {
         case 'TEST_COUNTER_UP':
-            return { counter: state.counter + 1 };
+            return Object.assign({}, state, { counter: state.counter + 1 })
             break;
         case 'TEST_COUNTER_DOWN':
-            return { counter: state.counter - 1 };
+            return Object.assign({}, state, { counter: state.counter - 1 })
             break;
         case 'FASTER_REFRESH':
             var old_rate = state.refresh_rate;
@@ -39,14 +39,31 @@ const rootReducer = (state = initialState, action) => {
         case 'HTTP_TOGGLE':
             console.log("HTTP Toggle pressed...");
             var new_mode;
-            if (state.refresh_mode === 0){
+            if (state.refresh_mode === 0) {
                 new_mode = 1;
             }
             else {
                 new_mode = 0;
             }
             console.log(`Old more: ${state.refresh_mode}. New mode: ${new_mode}`);
-            return Object.assign({}, state, { refresh_mode: new_mode })            
+            return Object.assign({}, state, { refresh_mode: new_mode })
+            break;
+        case 'UPDATE_USER_LIST':
+            console.log("@~@~@~@~@~@ USER LIST UPDATE REDUCER CALLED");
+            console.log(action);
+            // Merge new list of users into old list of users
+            if (action.error === false){
+            return Object.assign({}, state, { users: action.payload });
+            }
+            else {
+                console.log(action.error_message);
+                return Object.assign({}, state, { users: [{username: "Error pulling user list... server connection issue? "}] });                
+            }           
+            break;
+        case 'FETCH_USERS':
+            console.log("@~@~@~@~@~@ FETCH USERS  REDUCER CALLED");
+            console.log(action);
+            return state;
             break;
         default:
             return state

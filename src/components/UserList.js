@@ -23,7 +23,8 @@ class UserList extends Component {
   }
 
   function mapStateToProps(state) {
-    // console.log("UserList mapping state to props...");
+    console.log("UserList mapping state to props...");
+    console.log(state);
     return {users: state.users}
   }
 

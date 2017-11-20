@@ -28,6 +28,9 @@ export const TEST_COUNTER_DOWN = 'TEST_COUNTER_DOWN';
 export const FASTER_REFRESH = 'FASTER_REFRESH';
 export const SLOWER_REFRESH = 'SLOWER_REFRESH';
 export const HTTP_TOGGLE = 'HTTP_TOGGLE';
+export const UPDATE_USER_LIST = 'UPDATE_USER_LIST';
+export const FETCH_USERS = 'FETCH_USERS';
+
 
 
 
@@ -58,5 +61,20 @@ export const slowerRefresh = () => {
 export const toggleMode = () => {
   return {
     type: HTTP_TOGGLE
+  }
+}
+
+export const updateUsers = (userList, error, error_message) => {
+  return {
+    type: UPDATE_USER_LIST,
+    error: error,
+    error_message: error_message,
+    payload: userList
+  }
+}
+
+export const fetchUsers = () => {
+  return {
+    type: FETCH_USERS
   }
 }

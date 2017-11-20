@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-//import components
+// import components
 import ChatTextInput from './ChatTextInput.js';
 import ChatHeader from './ChatHeader.js';
 import EntranceSplash from './EntranceSplash.js';
@@ -9,6 +9,10 @@ import UserList from './UserList.js';
 import ToggleButton from './ToggleButton.js';
 import ControlBar from './ControlBar.js';
 import Chatroom from './Chatroom.js';
+
+// import actions
+import { fetchUsers, updateUsers } from '../actions/index.js';
+
 
 // master stateful component that tracks everything and passes change functions
 class ChatApp extends Component {
@@ -291,6 +295,7 @@ class ChatApp extends Component {
             }).catch(error => console.log(error));
         //.then(() => console.log(this.state));
 
+        // TODO: DEPRECATE THIS
         fetch('/getusers')
             .then(res => {
                 if (res.ok) {
@@ -304,7 +309,7 @@ class ChatApp extends Component {
     }
 
     longPoll() {
-        if (this.props.refresh_mode === 0){
+        if (this.props.refresh_mode === 0) {
             console.log("LongPoll called but DDOS mode is on, exiting...");
             return;
         }
@@ -320,6 +325,8 @@ class ChatApp extends Component {
         prior_counter += 1;
         this.setState({ request_counter: prior_counter });
 
+        // TODO: DEPRECATE THIS FOR REDUX
+        /*
         fetch('/getusers')
             .then(res => {
                 if (res.ok) {
@@ -336,7 +343,13 @@ class ChatApp extends Component {
                 // setTimeout(this.longPoll, 1000);
                 console.log(error);
             });
+            */
 
+        // call dispatch to redux store
+        console.log("@@~@~@~@~@ PROPS: ");
+        console.log(this.props);
+        this.props.handleFetchUsers();
+        
         console.log("Attempting long polling FC!");
         // fetch longpoll route
         var refresh_route = '/getmessageslong?max_id=';
@@ -424,6 +437,7 @@ class ChatApp extends Component {
         console.log("~~~~~~~~New props!");
         console.log(this.props);
         console.log(nextProps);
+        // this.props.handleFetchUsers();
         // handle a prop change from DDOS to LongPoll
         if (this.props.refresh_mode === 0 && nextProps.refresh_mode === 1) {
             // no logic actually needed here, it's handled by deprecated refresh only firing if refresh mode is correct
@@ -433,9 +447,9 @@ class ChatApp extends Component {
         // handle a prop change from LongPoll to DDOS
         if (this.props.refresh_mode === 1 && nextProps.refresh_mode === 0) {
             console.log("Toggle from LongPoll to DDOS");
-            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);           
+            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
         }
-        
+
     }
 
     render() {
@@ -486,20 +500,41 @@ class ChatApp extends Component {
 
 function mapStateToProps(state) {
     // console.log("ChatApp mapping state to props...");
-    return { 
+    return {
         refresh_rate: state.refresh_rate,
         refresh_mode: state.refresh_mode
-     }
+    }
 }
 
-/*
+
 const mapDispatchToProps = dispatch => {
-  return {
-      handleFaster: () => {
-          dispatch(fasterRefresh())
-      }
-  }
-}
-*/
+    return {
+        handleFetchUsers: () => {
+            // console.log("HANDLING FETCHED USERS ~~@~@~@~@~@");
+            // First action, alerting that the user fetch asyny has begun
+            dispatch(fetchUsers());            
+            fetch('/getusers')
+                .then(res => {
+                    if (res.ok) {
+                        return res.json()
+                    } else {
+                        throw Error(res.statusText)
+                    }
+                })
+                //.then(res => { console.log(res); this.setState({ data: res }) })
+                .then(res => {
+                    console.log("@~@~@~@~@~@ Request received! @~@~@~@~@~@");
+                    console.log(res);
+                    dispatch(updateUsers(res, false, "Users retrieved succesfully"));
 
-export default connect(mapStateToProps)(ChatApp);
+                }).catch(error => {
+                    console.log(error);
+                    dispatch(updateUsers(false, true, "Error retrieving user list"));                    
+                });
+                
+        }
+        // updateUsers = (userList, error, error_message)
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChatApp);
