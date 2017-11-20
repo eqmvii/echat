@@ -96,9 +96,10 @@ class App extends Component {
             <br />
             <ChatApp />
             <br />
-          </div>         
+          </div>          
 
         </div>
+        
         <div className="row">
 
           <div className="col-xs-2"></div>
@@ -107,8 +108,6 @@ class App extends Component {
             <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
             <p className="text-center" style={{ visibility: "hidden" }}>Server test: {this.state.data}.</p>
             <AboutEchat />
-            <ReduxTestContainer />     
-
           </div>
 
           <div className="col-xs-2"></div>

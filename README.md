@@ -12,7 +12,13 @@ echat is deployed to https://eqmvii-echat.herokuapp.com
 
 By Eric Mancini (https://github.com/eqmvii) 
 
-____
+Usage:
+
+npm start -> backend
+
+npm run front -> dev server + frontend
+
+npm test -> unit tests
 
 ____
 

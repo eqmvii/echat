@@ -8,6 +8,7 @@ class AboutEchat extends Component {
           <p>The echat application is full stack live chat program. 
             The front end is written in React, the back end is a combination of Node.js, Express, and PostgreSQL, and the whole thing is deployed via Heroku.</p>
           <p>It was created as a hobby project to practice using Express/React/PostgreSQL - in other words, it's deliberately frivolous.</p>
+          <div className="alert alert-danger"><strong>Redux Transition: </strong>The app is currently being refactored from React to React and Redux. Pardon the dust!</div>
           <h3>Features</h3>
           <p>Most basically, echat allows you to select a username and chat with everyone else currently using echat. Some specific features include:</p>
           <ul>

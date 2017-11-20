@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 //import components
 import ChatTextInput from './ChatTextInput.js';
@@ -26,6 +27,7 @@ class ChatApp extends Component {
         this.longPoll = this.longPoll.bind(this);
         this.handleHTTPToggle = this.handleHTTPToggle.bind(this);
         this.handleDebugMode = this.handleDebugMode.bind(this);
+        this.deprecated_refresh_timeout = this.deprecated_refresh_timeout.bind(this);
 
         // initial state configuration
         // refresh mode is either 0 (DDOS) or 1 (long polling)
@@ -52,26 +54,33 @@ class ChatApp extends Component {
         this.setState({ debug_mode: new_debug_mode });
     }
 
+    // DEPRECATED
     // switch between DDOS and long-polling
     handleHTTPToggle() {
         // If current mode is DDOS:
         if (this.state.refresh_mode === 0) {
             this.setState({ refresh_mode: 1 });
-            clearInterval(this.refresh_interval);
+            // clearInterval(this.refresh_interval);
             this.longPoll();
         }
         // If current mode is long-polling: 
         else if (this.state.refresh_mode === 1) {
             this.setState({ refresh_mode: 0 });
             // start DDOS
+            /*
             this.refresh_interval = setInterval(
                 () => this.refresh(),
-                this.state.refresh_rate);
+                this.props.refresh_rate
+            );
+            */
+            console.log("@#TOGGLE: REFRESH RATE: " + this.props.refresh_rate);
+            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
         }
     }
 
+    // DEPRECATED
     handleSlower() {
-        let old_rate = this.state.refresh_rate;        
+        let old_rate = this.state.refresh_rate;
         if (old_rate <= 5000) {
             this.setState({ refresh_rate: old_rate + 100 });
         }
@@ -82,6 +91,7 @@ class ChatApp extends Component {
         console.log("Slowed down!");
     }
 
+    // DEPRECATED 
     handleFaster() {
         let old_rate = this.state.refresh_rate;
         if (old_rate >= 201) {
@@ -204,13 +214,16 @@ class ChatApp extends Component {
         console.log(stored_username);
         // get refresh going is user leaves and comes back
         if (stored_username) {
-            if (this.state.refresh_mode === 0) {
+            if (this.props.refresh_mode === 0) {
                 // start DDOS
+                /*
                 this.refresh_interval = setInterval(
                     () => this.refresh(),
-                    this.state.refresh_rate
+                    this.props.refresh_rate
                 );
-            } else if (this.state.refresh_mode === 1) {
+                */
+                setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
+            } else if (this.props.refresh_mode === 1) {
                 this.longPoll();
             }
             this.setState({ username: stored_username, logged_in: true, max_id: 0 });
@@ -291,11 +304,16 @@ class ChatApp extends Component {
     }
 
     longPoll() {
+        if (this.props.refresh_mode === 0){
+            console.log("LongPoll called but DDOS mode is on, exiting...");
+            return;
+        }
+        console.log("#@ REFRESH RATE: " + this.props.refresh_rate);
         // Don't fetch messages if not logged in
         if (!this.state.logged_in) {
             console.log("Not logged in; not longfetching data");
             //console.log(this.state.logged_in);
-            setTimeout(this.longPoll, this.state.refresh_rate);
+            setTimeout(this.longPoll, this.props.refresh_rate);
             return;
         }
         var prior_counter = this.state.request_counter;
@@ -362,7 +380,7 @@ class ChatApp extends Component {
                 // test code only
                 this.setState({ max_id: res.max_id });
 
-                setTimeout(this.longPoll, this.state.refresh_rate);
+                setTimeout(this.longPoll, this.props.refresh_rate);
             })
             .catch(error => {
                 // Try again since there's likely a connection issue
@@ -373,18 +391,51 @@ class ChatApp extends Component {
     }
 
     componentDidMount() {
-        if (this.state.refresh_mode === 0) {
+        if (this.props.refresh_mode === 0) {
+            /*
             this.refresh_interval = setInterval(
                 () => this.refresh(),
-                this.state.refresh_rate
+                this.props.refresh_rate
             );
-        } else if (this.state.refresh_mode === 1) {
+            */
+            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
+        } else if (this.props.refresh_mode === 1) {
             console.log("Component mounted, set to long polling though");
+        }
+    }
+
+    deprecated_refresh_timeout() {
+        console.log("Refresh! Rate: " + this.props.refresh_rate);
+        this.refresh();
+        if (this.props.refresh_mode === 0) {
+            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
         }
     }
 
     componentWillUnmount() {
         clearInterval(this.refresh_interval);
+    }
+
+    componentWillUpdate() {
+        // console.log("~~~~~~~~New state or props!");
+    }
+
+    componentWillReceiveProps(nextProps) {
+        console.log("~~~~~~~~New props!");
+        console.log(this.props);
+        console.log(nextProps);
+        // handle a prop change from DDOS to LongPoll
+        if (this.props.refresh_mode === 0 && nextProps.refresh_mode === 1) {
+            // no logic actually needed here, it's handled by deprecated refresh only firing if refresh mode is correct
+            console.log("Toggle from DDOS to LongPoll");
+        }
+
+        // handle a prop change from LongPoll to DDOS
+        if (this.props.refresh_mode === 1 && nextProps.refresh_mode === 0) {
+            console.log("Toggle from LongPoll to DDOS");
+            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);           
+        }
+        
     }
 
     render() {
@@ -398,7 +449,7 @@ class ChatApp extends Component {
                         handleLogout={this.handleLogout}
                         user={this.state.username}
                     />
-                    <UserList users={this.state.users} />
+                    <UserList />
                     <Chatroom
                         messages={this.state.messages}
                         max_messages={this.state.max_messages}
@@ -414,10 +465,6 @@ class ChatApp extends Component {
                         handleClearMessages={this.handleClearMessages}
                         handleClearUsers={this.handleClearUsers}
                         handleLogout={this.handleLogout}
-                        handleSlower={this.handleSlower}
-                        handleFaster={this.handleFaster}
-                        handleHTTPToggle={this.handleHTTPToggle}
-                        parent_state={this.state}                        
                     />
                     <div className="text-center">
                         <br />
@@ -437,4 +484,22 @@ class ChatApp extends Component {
     }
 }
 
-export default ChatApp;
+function mapStateToProps(state) {
+    // console.log("ChatApp mapping state to props...");
+    return { 
+        refresh_rate: state.refresh_rate,
+        refresh_mode: state.refresh_mode
+     }
+}
+
+/*
+const mapDispatchToProps = dispatch => {
+  return {
+      handleFaster: () => {
+          dispatch(fasterRefresh())
+      }
+  }
+}
+*/
+
+export default connect(mapStateToProps)(ChatApp);

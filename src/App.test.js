@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+// TODO: Redux is breaking all of the component tests idk figure it out later...
+
 // Components to test
 
 // Components with issues in current test suite paragidm
