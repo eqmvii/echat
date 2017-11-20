@@ -7,5 +7,6 @@
 
 ## Bugs
 
+* Toggling can kill refreshes!
 * clear chat history is still kind of hacky
 * No username remembering on browser refresh

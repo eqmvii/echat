@@ -1,7 +1,5 @@
 # echat
 
-## In progress: Converting pure React app to a Redux app
-
 A live chat application using React, Redux, Express, PostgreSQL and deployed to Heroku.
 
 echat is deployed to https://eqmvii-echat.herokuapp.com
