@@ -34,6 +34,8 @@ export const TOGGLE_DEBUG_MODE = 'TOGGLE_DEBUG_MODE';
 export const LOGIN = 'LOGIN';
 export const LOGOUT = 'LOGOUT';
 export const REFRESH = 'REFRESH';
+export const HTTP_COUNTER_UP = 'HTTP_COUNTER_UP';
+export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
 
 export const testCounterUp = () => {
   return {
@@ -62,6 +64,18 @@ export const slowerRefresh = () => {
 export const toggleMode = () => {
   return {
     type: HTTP_TOGGLE
+  }
+}
+
+export const httpCounter = () => {
+  return {
+    type: HTTP_COUNTER_UP
+  }
+}
+
+export const clearMessages = () => {
+  return {
+    type: CLEAR_MESSAGES
   }
 }
 
@@ -106,10 +120,10 @@ export const loginComplete = (username) => {
   }
 }
 
-export const loginFail = (username) => {
+export const loginFail = (username, message) => {
   return {
     type: LOGIN,
-    status: `Username ${username} already taken!`,
+    status: message,
     username: username,
     error: true, 
     done: true

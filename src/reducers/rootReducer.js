@@ -75,6 +75,9 @@ const rootReducer = (state = initialState, action) => {
                 // this.setState({ username: username, logged_in: true, max_id: 0, login_error: false, nameInput: '' });
                 return Object.assign({}, state, { username: action.username, logged_in: true, max_id: 0, login_error: false });
             }
+            else if (action.error){
+                return Object.assign({}, state, { login_error: action.status });                
+            }
             else {
                 return state;
             }
@@ -86,9 +89,17 @@ const rootReducer = (state = initialState, action) => {
         case 'REFRESH':
             // this.setState({ messages: res.rows.reverse(), max_id: max_id });
             // dispatch(refreshMessages(res.rows.reverse(), max_id));
-            console.log("Refresh Reducer Switch Called");
-            console.log(action);
+            // console.log("Refresh Reducer Switch Called");
+            // console.log(action);
             return Object.assign({}, state, { messages: action.messages, max_id: action.max_id });
+            break;
+        case 'HTTP_COUNTER_UP':
+            var old_requests = state.request_counter;
+            return Object.assign({}, state, { request_counter: old_requests + 1 });
+            break;
+        case 'CLEAR_MESSAGES':
+            // this.setState({ max_id: 0 })
+            return Object.assign({}, state, { max_id: 0 });
             break;
         default:
             return state

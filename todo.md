@@ -1,11 +1,11 @@
 # TODO
 
-## Features
+## Features to add
 
-* Modularize
-* Integrate redux
-* Re-enable faster and slower refresh rates
+* Finish redux integration testing 
+* Update unit tests post-redux integration
 
 ## Bugs
 
-* Sending an empty chat creates an empty line in the chatroom
+* clear chat history is still kind of hacky
+* No username remembering on browser refresh

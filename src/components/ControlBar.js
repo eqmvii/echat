@@ -38,7 +38,9 @@ class ControlBar extends Component {
 
 function mapStateToProps(state) {
   // console.log("ControlBar mapping state to props...");
-  return { parent_state: state }
+  return { 
+    parent_state: state,
+   }
 }
 
 const mapDispatchToProps = dispatch => {

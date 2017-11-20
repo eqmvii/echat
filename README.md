@@ -2,13 +2,11 @@
 
 ## In progress: Converting pure React app to a Redux app
 
-A simple chat program using React, Express, PostgreSQL and deployed to Heroku.
-
-Unit tests in jest via the /src/App.test.js file
+A live chat application using React, Redux, Express, PostgreSQL and deployed to Heroku.
 
 echat is deployed to https://eqmvii-echat.herokuapp.com
 
-(note: deployed version may lag behind github version during redux conversion)
+Unit tests in jest via the /src/App.test.js file
 
 By Eric Mancini (https://github.com/eqmvii) 
 

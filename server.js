@@ -101,7 +101,7 @@ function cleanup() {
                         server_max_id = -1;
                     })
                 });
-               
+
             }
         });
 }
@@ -114,7 +114,7 @@ function logout_user(username) {
     client.query(query_string, values)
         .then(() => {
             query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-            values = ['@GOODBYE BOT   ', 'Goodbye ' + username + ', you have been logged out due to inactivity.'];
+            values = ['@ GOODBYE BOT', 'Goodbye ' + username + ', you have been logged out due to inactivity.'];
             client.query(query_string, values);
             // slightly hacky way to force clients to refresh
             server_max_id += 2;
@@ -147,8 +147,17 @@ app.get('/clearhistory', function (req, res) {
         var reset_query_string = "ALTER SEQUENCE echat_messages_id_seq RESTART";
         client.query(reset_query_string).then(response => {
             server_max_id = -1;
-            res.end();
-        })      
+            var query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
+            var values = ['@ CHAT CLEAR BOT', 'Somebody cleared the chat!'];
+            console.log("It's query time! Query string / values: ");
+            console.log(query_string);
+            console.log(values);
+            client.query(query_string, values)
+                .then(response => {
+                    server_max_id += 2;
+                    res.end();
+                });
+        })
     });
 });
 
@@ -158,7 +167,7 @@ app.get('/clearusers', function (req, res) {
     client.query('DELETE FROM echat_users;', (err, response) => {
         if (err) throw err;
         var query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-        var values = ['@MASSLOG BOT   ', 'Somebody logged everyone out via debug mode!'];
+        var values = ['@ MASSLOG BOT', 'Somebody logged everyone out via debug mode!'];
         console.log("It's query time! Query string / values: ");
         console.log(query_string);
         console.log(values);
@@ -166,13 +175,13 @@ app.get('/clearusers', function (req, res) {
             .then(response => {
                 server_max_id += 2;
                 res.end();
-            })          
+            })
     });
 });
 
 // Auto-refresh in DDOS mode
 app.get('/getmessages', function (req, res) {
-    var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id };
+    var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id, username: req.query.username };
     // console.log("Get messages endpoint hit");
     // console.log(req.query);
     var max_id = parseInt(req.query.max_id, 10);
@@ -217,7 +226,7 @@ app.get('/getmessages', function (req, res) {
 // Auto-refresh in long polling mode
 app.get('/getmessageslong', function (req, res) {
     var counter = 0;
-    var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id };
+    var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id, username: req.query.username };
     // console.log("Get messages endpoint hit");
     // console.log(req.query);
     var max_id = parseInt(req.query.max_id, 10);
@@ -234,7 +243,7 @@ app.get('/getmessageslong', function (req, res) {
         }
         else {
             // console.log("@@@ Enter the time loop");
-            counter +=1;
+            counter += 1;
             setTimeout(timeLoop, time_settings.long_poll_rate);
 
             /*
@@ -280,10 +289,10 @@ app.get('/getmessageslong', function (req, res) {
             client.query('SELECT * FROM echat_messages ORDER BY stamp desc LIMIT 20', (err, response) => {
                 // console.log("Max: " + response.rows[0].id);
                 // console.log("Min: " + response.rows[response.rows.length - 1].id);
+                if (err) throw err;
                 if (response.rows.length > 0) {
                     server_max_id = response.rows[0].id;
                 }
-                if (err) throw err;
                 get_messages_response_object.update = true;
                 get_messages_response_object.rows = response.rows;
                 res.json(get_messages_response_object);
@@ -345,7 +354,7 @@ app.post('/login', function (req, res) {
                     client.query(query_string, values)
                         .then(resolve => {
                             var query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-                            var values = ['@WELCOME BOT   ', 'Welcome to echat, ' + username + '!'];
+                            var values = ['@ WELCOME BOT', 'Welcome to echat, ' + username + '!'];
                             console.log("It's query time! Query string / values: ");
                             console.log(query_string);
                             console.log(values);
@@ -416,7 +425,7 @@ function login_test(username) {
                 client.query(query_string, values)
                     .then(() => {
                         query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2) returning id";
-                        values = ['@WELCOME BOT   ', "Welcome back to echat, " + username + "! You're back after being idle!"];
+                        values = ['@ WELCOME BOT', "Welcome back to echat, " + username + "! You're back after being idle!"];
                         console.log("It's query time! Query string / values: ");
                         console.log(query_string);
                         console.log(values);
@@ -462,16 +471,16 @@ app.post('/logout', function (req, res) {
                 console.log(err);
             };
             query_string = "INSERT INTO echat_messages (username, message) VALUES ($1, $2)";
-            values = ['@GOODBYE BOT   ', 'Goodbye ' + body.username + '!'];
+            values = ['@ GOODBYE BOT', 'Goodbye ' + body.username + '!'];
             client.query(query_string, values)
                 .then(response => {
                     server_max_id += 2;
                     res.json("Done");
-                });  
-            
+                });
+
         });
     });
-    });
+});
 
 // Start up the server:
 app.listen(port, function () {

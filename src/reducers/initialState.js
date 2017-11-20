@@ -11,7 +11,7 @@ export default {
     login_error: false,
     refresh_rate: 250,
     max_id: 0,
-    request_counter: 0,
+    request_counter: -1,
     debug_mode: true,
     refresh_mode: 1,
     refresh_name: ["DDOS", "Long Polling"],
