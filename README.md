@@ -1,6 +1,6 @@
 # echat
 
-A live chat application using React, Redux, Express, PostgreSQL and deployed to Heroku.
+A live chat application allowing multiple users to communicate simultaneously. Built with React, Redux, Express, PostgreSQL and deployed to Heroku.
 
 echat is deployed to https://eqmvii-echat.herokuapp.com
 

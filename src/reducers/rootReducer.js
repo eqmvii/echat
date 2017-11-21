@@ -45,7 +45,7 @@ const rootReducer = (state = initialState, action) => {
             else {
                 new_mode = 0;
             }
-            console.log(`Old more: ${state.refresh_mode}. New mode: ${new_mode}`);
+            // console.log(`Old mode: ${state.refresh_mode}. New mode: ${new_mode}`);
             return Object.assign({}, state, { refresh_mode: new_mode })
             break;
         case 'UPDATE_USER_LIST':
@@ -100,6 +100,10 @@ const rootReducer = (state = initialState, action) => {
         case 'CLEAR_MESSAGES':
             // this.setState({ max_id: 0 })
             return Object.assign({}, state, { max_id: 0 });
+            break;
+        case 'CLEAR_USERS':
+            // no state change needed, but action exists for logging purposes
+            return state;
             break;
         default:
             return state

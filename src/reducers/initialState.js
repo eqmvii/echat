@@ -1,7 +1,7 @@
 let timestamp = new Date();
 
 export default {
-    max_messages: 16,
+    max_messages: 14,
     username: false,
     messages: [],
     nameInput: '',
@@ -12,7 +12,7 @@ export default {
     refresh_rate: 250,
     max_id: 0,
     request_counter: -1,
-    debug_mode: true,
+    debug_mode: false,
     refresh_mode: 1,
     refresh_name: ["DDOS", "Long Polling"],
     counter: 0

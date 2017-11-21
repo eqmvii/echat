@@ -5,9 +5,8 @@ class AboutEchat extends Component {
       return (
         <div>
           <h1>About echat</h1>
-          <p>This is a live chat program. Pick a username and chat with anybody else also on the app!</p>
+          <p>This is a live chat program. Pick a username and chat with everyone else using the app!</p>
             <p>The front-end was initially written in React and is now React+Redux, the back end is a combination of Node.js, Express, and PostgreSQL. The whole thing is deployed to Heroku.</p>
-          <p>It was created as a hobby project to practice using Express/React/Redux/SQL.</p>
           <div className="alert alert-danger"><strong>Redux Transition: </strong>The app was recently refactored from React to React + Redux. Debugging is ongoing!!</div>
           <h3>Features</h3>
           <p>Most basically, echat allows you to select a username and chat with everyone else currently using echat. Some specific features include:</p>
@@ -18,10 +17,10 @@ class AboutEchat extends Component {
             <li><strong>Auto Message Clearing:</strong> after a longer period of inactivity, all chat messages are also cleared from the database.</li>
             </ul>
           <h3>Debug Mode</h3>
-          <p>If you press the "Toggle Debug Mode" button, an array of buttons and diagnostic information will appear, in addition to enabling console logging of various debugging information.</p>
+          <p>If you press the "Toggle Debug Menu" button, a button toolbar and diagnostic information will appear.</p>
           <ul>
-            <li><strong>Clear Chat:</strong> deletes all chat messages.</li>
-            <li><strong>Logout:</strong> logs out only the user that pressed the button out.</li>
+            <li><strong>Clear Chat:</strong> deletes all chat messages for all users.</li>
+            <li><strong>Logout:</strong> logs out only the user that pressed the button.</li>
             <li><strong>Logout All:</strong> logs out all active users and returns them to the login screen.</li>
             <li><strong>Toggle DDOS/Long-Polling:</strong> changes between Long Polling Mode (default) and DDOS Mode (...not recommended)
               <ul>
@@ -30,12 +29,12 @@ class AboutEchat extends Component {
                   A "no updates" response is sent after several seconds even if there is no change to the database to avoid HTTP timeout errors, particularly because of the Heroku platform.</li>
                 <li><strong>DDOS Mode: </strong> 
                   a new HTTP request is sent at the refresh interval, which ranges from as fast as almost 10 times per second to as slow as roughly once every 5 seconds.
-                  This was the first way I thought about making a chat application, but has abysmal performance and scaling implications.
-                  No points for guessing why I call it DDOS mode.</li>
+                  This was the first way I thought about making a chat application, but (obviously) has abysmal performance and scaling implications.
+                  No points for guessing why I call it DDOS Mode.</li>
                 </ul>
                 </li>
-            <li><strong>Slower refresh:</strong> increases the frequency of HTTP requests for new messages (DDOS mode) or increases the time between long polling HTTP requests (Long-Polling Mode)</li>
-            <li><strong>Faster refresh:</strong> reduced the frequency of HTTP requests for new messages (DDOS mode) or reduces the time between long polling HTTP requests (Long Polling Mode)</li>
+            <li><strong>Slower refresh:</strong> increases the frequency of HTTP requests for new messages (DDOS Mode) or increases the time between long polling HTTP requests (Long Polling Mode)</li>
+            <li><strong>Faster refresh:</strong> reduced the frequency of HTTP requests for new messages (DDOS Mode) or reduces the time between long polling HTTP requests (Long Polling Mode)</li>
   
             </ul>
             <br />

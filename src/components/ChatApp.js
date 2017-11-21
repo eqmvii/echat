@@ -1,7 +1,8 @@
 // TODO:
 /*
 Add back session storage functionality
-
+Remove heavy commenting once redux is conversion is stable
+Add more unit tests for redux elements
 */
 
 import React, { Component } from 'react';
@@ -237,9 +238,9 @@ class ChatApp extends Component {
     }
     */
 
-    longPoll() {
-        if (this.props.refresh_mode === 0) {
-            // console.log("LongPoll called but DDOS mode is on, exiting...");
+    longPoll(toggle) {
+        if (this.props.refresh_mode === 0 && toggle !== true) {
+            console.log("LongPoll called but DDOS mode is on, exiting...");
             return;
         }
         // console.log(" # @ Longpolling; REFRESH RATE: " + this.props.refresh_rate);
@@ -336,7 +337,8 @@ class ChatApp extends Component {
         // this.props.handleFetchUsers();
         // handle a prop change from DDOS to LongPoll
         if (this.props.refresh_mode === 0 && nextProps.refresh_mode === 1) {
-            // no logic actually needed here, it's handled by deprecated refresh only firing if refresh mode is correct
+            // sending 'true' as an argument will force long polling to start even though app is currently in DDOS mode
+            this.longPoll(true);
             console.log("Toggle from DDOS to LongPoll");
         }
 
@@ -552,7 +554,7 @@ const mapDispatchToProps = dispatch => {
                             .then(res => {
                                 if (res.ok) {
                                     dispatch(logoutUser(res.username));
-                                    dispatch(loginFail(res.username, "Somebody pressed the 'logout all users' button :("));
+                                    dispatch(loginFail(res.username, "Somebody pressed the 'logout all users' button!"));
                                     return res.json();
                                 } else { throw Error(res.statusText) }
                             }).catch(error => console.log(error));
@@ -599,6 +601,7 @@ const mapDispatchToProps = dispatch => {
                 }).catch(error => console.log(error));
         },
         handleClearUsers: () => {
+            dispatch(clearUsers());            
             fetch('/clearusers')
                 .then(res => {
                     if (!res.ok) {

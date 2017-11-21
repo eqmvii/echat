@@ -36,6 +36,7 @@ export const LOGOUT = 'LOGOUT';
 export const REFRESH = 'REFRESH';
 export const HTTP_COUNTER_UP = 'HTTP_COUNTER_UP';
 export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
+export const CLEAR_USERS = 'CLEAR_USERS';
 
 export const testCounterUp = () => {
   return {
@@ -142,5 +143,11 @@ export const refreshMessages = (messages, max_id) => {
     type: REFRESH,
     messages: messages,
     max_id: max_id
+  }
+}
+
+export const clearUsers = () => {
+  return {
+    type: CLEAR_USERS
   }
 }

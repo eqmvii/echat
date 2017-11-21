@@ -5,7 +5,7 @@ import { toggleDebug } from '../actions/index.js';
 
 class ToggleButton extends Component {
   render() {
-    return (<button onClick={this.props.handleDebugToggle} className="btn btn-info">Toggle Debug Mode</button>)
+    return (<button onClick={this.props.handleDebugToggle} className="btn btn-info">Toggle Debug Menu</button>)
   }
 }
 

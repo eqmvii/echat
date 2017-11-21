@@ -14,7 +14,7 @@ import './App.css';
 // component import
 import ChatApp from './components/ChatApp.js';
 import AboutEchat from './components/AboutEchat.js';
-import ReduxTestContainer from './containers/ReduxTestContainer';
+// import ReduxTestContainer from './containers/ReduxTestContainer';
 
 
 /*
@@ -70,11 +70,12 @@ class App extends Component {
         }
       })
       .then(res => {
-        console.log(res);
+        // console.log(res);
         this.setState({ data: res, ready: true });
       }).catch(error => {
         console.log(error);
-        setTimeout(this.testConnection, 500);
+        // TODO: This makes testing the app component... painful. Do Something?
+        setTimeout(this.testConnection, 750);
       });
   }
 
@@ -108,7 +109,6 @@ class App extends Component {
             <p className="text-center">Made by <a href="https://github.com/eqmvii"><i className="fa fa-github" aria-hidden="true"></i> eqmvii</a>	&copy; 2017</p>
             <p className="text-center" style={{ visibility: "hidden" }}>Server test: {this.state.data}.</p>
             <AboutEchat />
-            <ReduxTestContainer />
           </div>
 
           <div className="col-xs-2"></div>

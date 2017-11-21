@@ -1,6 +1,7 @@
 // server.js - backend for echat application
 // Node.js/Express server hooked into PostgreSQL via PG
 // TODO: Investigate using sessions for logging in (maybe for the next app?)
+// TODO: Better logic for incrementing server_max_id
 
 const express = require('express')
 const app = express()

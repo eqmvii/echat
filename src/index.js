@@ -8,9 +8,11 @@ import App from './App';
 import rootReducer from './reducers/rootReducer.js';
 
 // TODO: Remove this when testing for integration is complete
-import ReduxTestContainer from './containers/ReduxTestContainer';
+// import ReduxTestContainer from './containers/ReduxTestContainer';
 
-import { registerServiceWorker, unregister } from './registerServiceWorker';
+// import { registerServiceWorker, unregister } from './registerServiceWorker';
+import { unregister } from './registerServiceWorker';
+
 
 let store = createStore(rootReducer);
 
