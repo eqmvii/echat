@@ -2,8 +2,6 @@
 // A simple chat application in React
 // With a Node/Express/PostgreSQL backend 
 // By eqmvii - https://github.com/eqmvii
-// TODO: Try socket.io for websocket, try webworker for auto refresh, add a chatbot (tarot card?)
-// Unregister function in server.js
 
 // library import
 import React, { Component } from 'react';
@@ -14,37 +12,6 @@ import './App.css';
 // component import
 import ChatApp from './components/ChatApp.js';
 import AboutEchat from './components/AboutEchat.js';
-// import ReduxTestContainer from './containers/ReduxTestContainer';
-
-
-/*
-// Debug variables. console.log for togglable non-error logging via dbv.dbm
-var dbv = {
-  refresh_modes: ['DDOS', 'Long Polling'],
-  refresh_mode: 1,
-  refresh_rate: 250,
-  dbm: false,
-  logged_in: false,
-  username: "Eric",
-  max_messages: 16,
-  log: function (message) {
-    if (this.dbm) {
-      console.log(message);
-    }
-  },
-  slower: function () {
-    if (this.refresh_rate <= 5000) {
-      this.refresh_rate += 100;
-    }
-    console.log("Slowed down! Now at: " + this.refresh_rate);
-  },
-  faster: function () {
-    if (this.refresh_rate >= 201) {
-      this.refresh_rate -= 100;
-    }
-  }
-}
-*/
 
 // container component for the entire application
 class App extends Component {
@@ -70,7 +37,6 @@ class App extends Component {
         }
       })
       .then(res => {
-        // console.log(res);
         this.setState({ data: res, ready: true });
       }).catch(error => {
         console.log(error);

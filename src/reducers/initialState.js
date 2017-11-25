@@ -1,3 +1,5 @@
+// default state that the echat is initialized with, and also used for testing
+
 let timestamp = new Date();
 
 export default {
@@ -6,7 +8,7 @@ export default {
     messages: [],
     nameInput: '',
     chatInput: '',
-    users: [{username: "Initial State User #1", stamp: timestamp, id: 0}, {username: "Initial State User #2", stamp: timestamp, id: -1}],
+    users: [],
     logged_in: false,
     login_error: false,
     refresh_rate: 250,
@@ -17,3 +19,6 @@ export default {
     refresh_name: ["DDOS", "Long Polling"],
     counter: 0
   };
+
+  // user objects, in case having them is helpful for testing:
+  // {username: "Initial State User #1", stamp: timestamp, id: 0}, {username: "Initial State User #2", stamp: timestamp, id: -1}

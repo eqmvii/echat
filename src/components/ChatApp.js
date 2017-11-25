@@ -1,7 +1,6 @@
 // TODO:
 /*
 Add back session storage functionality
-Remove heavy commenting once redux is conversion is stable
 Add more unit tests for redux elements
 */
 
@@ -24,124 +23,43 @@ import { fetchUsers, updateUsers, loginUser, loginComplete, loginFail, logoutUse
 // master stateful component that tracks everything and passes change functions
 class ChatApp extends Component {
     constructor(props) {
+        // boilerplate for the class
         super(props);
+
         // bind handle functions
         this.handleLogin = this.handleLogin.bind(this);
         this.handleNameTyping = this.handleNameTyping.bind(this);
         this.handleChatTyping = this.handleChatTyping.bind(this);
         this.handleLogout = this.handleLogout.bind(this);
         this.handleChatSend = this.handleChatSend.bind(this);
-        //this.handleClearMessages = this.handleClearMessages.bind(this);
-        // this.handleClearUsers = this.handleClearUsers.bind(this);
-        // this.handleSlower = this.handleSlower.bind(this);
-        // this.handleFaster = this.handleFaster.bind(this);
         this.longPoll = this.longPoll.bind(this);
-        // this.handleHTTPToggle = this.handleHTTPToggle.bind(this);
-        // this.handleDebugMode = this.handleDebugMode.bind(this);
         this.deprecated_refresh_timeout = this.deprecated_refresh_timeout.bind(this);
         this.refresh_DDOS = this.refresh_DDOS.bind(this);
 
-        // initial state configuration
-        // refresh mode is either 0 (DDOS) or 1 (long polling)
+        // initial local state configuration
+        // most of the app's state is actually held in the redux store
         this.state = {
-            max_messages: this.props.max_messages,
-            username: this.props.username,
             nameInput: '',
             chatInput: '',
-            logged_in: this.props.logged_in,
-            login_error: this.props.login_error,
-            max_id: this.props.max_id,
-            refresh_mode: this.props.refresh_mode,
-            refresh_name: ["DDOS", "Long Polling"]
         }
     }
 
-    // DEPRECATED
-    /*
-    handleDebugMode() {
-        let new_debug_mode = !this.state.debug_mode;
-        this.setState({ debug_mode: new_debug_mode });
-    }
-    */
-
-    // DEPRECATED
-    // switch between DDOS and long-polling
-    /*
-    handleHTTPToggle() {
-        // If current mode is DDOS:
-        if (this.state.refresh_mode === 0) {
-            this.setState({ refresh_mode: 1 });
-            // clearInterval(this.refresh_interval);
-            this.longPoll();
-        }
-        // If current mode is long-polling: 
-        else if (this.state.refresh_mode === 1) {
-            this.setState({ refresh_mode: 0 });
-            // start DDOS
-            
-            //this.refresh_interval = setInterval(
-            //    () => this.refresh(),
-            //    this.props.refresh_rate
-            //);
-            
-            console.log("@#TOGGLE: REFRESH RATE: " + this.props.refresh_rate);
-            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
-        }
-    }
-    */
-
-    // DEPRECATED
-    /*
-    handleSlower() {
-        let old_rate = this.state.refresh_rate;
-        if (old_rate <= 5000) {
-            this.setState({ refresh_rate: old_rate + 100 });
-        }
-        if (this.state.refresh_mode === 0) {
-            clearInterval(this.refresh_interval);
-            this.refresh_interval = setInterval(() => this.refresh(), old_rate + 100);
-        }
-        console.log("Slowed down!");
-    }
-    */
-
-    // DEPRECATED 
-    /*
-    handleFaster() {
-        let old_rate = this.state.refresh_rate;
-        if (old_rate >= 201) {
-            this.setState({ refresh_rate: old_rate - 100 });
-        }
-        // if app is in DDOS mode, clear the setInterval and start a new one at the new rate
-        if (this.state.refresh_mode === 0) {
-            clearInterval(this.refresh_interval);
-            this.refresh_interval = setInterval(() => this.refresh(), old_rate - 100);
-        }
-        console.log("Sped up!");
-    }
-    */
-
-    // TODO: Check w/ redux
     handleNameTyping(event) {
         this.setState({ nameInput: event.target.value })
     }
 
-    // TODO: Check w/ redux
     handleChatTyping(event) {
         this.setState({ chatInput: event.target.value })
     }
 
-    // Updated for Redux
     handleLogin(event) {
         event.preventDefault();
-        // console.log("Login pressed!");
         // strip white space and @ symbols from username, distinguishes bot messags from user messages
         var username = this.state.nameInput.replace(/ /g, '');
         username = this.state.nameInput.replace(/@/g, '');
         // sessionStorage.setItem('username', username);
         // Force user to enter a name
         if (username === '') {
-            // this.setState({ login_error: "Please enter a username" });
             this.props.handleBlankUsername();
             return;
         }
@@ -149,34 +67,20 @@ class ChatApp extends Component {
         this.props.handleLogin(username);
     }
 
-    // Updated for Redux
     handleLogout() {
         var delete_name = this.props.username;
         this.props.handleLogout(delete_name);
         this.setState({ nameInput: '', chatInput: '' });
     }
 
-    // Current for Redux; no need to keep chat messages to send in the redux state
     handleChatSend(event) {
         event.preventDefault();
-        // console.log("handleChatSend was called!");
-        // console.log(this.state.chatInput);
         // don't send empty data to the server
         if (!this.state.chatInput) {
             return;
         }
         let message = this.state.chatInput;
         let username = this.props.username;
-
-        /*
-        // Front-end only message list population
-        // This might cause weird bugs in message list order
-        // Or it might work just fine!
-        let msgList = this.state.messages.slice();
-        msgList.push({ message: this.state.chatInput, stamp: Date.now(), username: username });
-        this.setState({ messages: msgList, chatInput: '' })
-        console.log(msgList);
-        */
 
         // send posted message info to the backend server
         fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
@@ -187,154 +91,71 @@ class ChatApp extends Component {
             }).catch(error => console.log(error));
     }
 
-    // DEPRECATED
-    /*
-    handleClearMessages() {
-        fetch('/clearhistory')
-            .then(res => {
-                if (res.ok) {
-                    this.setState({ max_id: 0 })
-                }
-                else { throw Error(res.statusText) }
-            }).catch(error => console.log(error));
-    }
-    */
-
-    // DEPRECATED
-    /*
-    handleClearUsers() {
-        fetch('/clearusers')
-            .then(res => {
-                if (!res.ok) {
-                    throw Error(res.statusText)
-                }
-            }).catch(error => console.log(error));
-    }
-    */
-
-    /*
-    componentWillMount() {
-        // Check to see if user already logged in
-        //var stored_username = sessionStorage.getItem('username');
-        //var stored_username = false;
-        // console.log("Session username stored as: ");
-        // console.log(stored_username);
-        // get refresh going is user leaves and comes back
-        // DEPRECATED at the moment
-        // TODO: Restore remembering the user logic
-        if (stored_username) {
-            if (this.props.refresh_mode === 0) {
-                // start DDOS                
-                // this.refresh_interval = setInterval(
-                //     () => this.refresh(),
-                //    this.props.refresh_rate
-                // );                
-                setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
-            } else if (this.props.refresh_mode === 1) {
-                this.longPoll();
-            }
-            this.setState({ username: stored_username, logged_in: true, max_id: 0 });
-        }        
-    }
-    */
-
     longPoll(toggle) {
+        // don't execute the longPoll code if toggle was hit before a setTimeout triggered
         if (this.props.refresh_mode === 0 && toggle !== true) {
             console.log("LongPoll called but DDOS mode is on, exiting...");
             return;
         }
-        // console.log(" # @ Longpolling; REFRESH RATE: " + this.props.refresh_rate);
         // Don't fetch messages if not logged in
         if (!this.props.logged_in) {
-            // console.log("Not logged in; not longfetching data");
-            //console.log(this.props.logged_in);
             setTimeout(this.longPoll, this.props.refresh_rate);
             return;
         }
-        /*
-        var prior_counter = this.state.request_counter;
-        prior_counter += 1;
-        this.setState({ request_counter: prior_counter });
-        */
 
-        // call dispatch to redux store
-        // console.log("@@~@~@~@~@ PROPS: ");
-        // console.log(this.props);
+        // fetching users and fetching messages race
         this.props.handleFetchUsers();
-        // Deprecated
-        /*
-        fetch('/getusers')
-            .then(res => {
-                if (res.ok) {
-                    return res.json()
-                } else {
-                    throw Error(res.statusText)
-                }
-            })
-            //.then(res => { console.log(res); this.setState({ data: res }) })
-            .then(res => {
-                this.setState({ users: res });
-            }).catch(error => {
-                // Try again since there's likely a connection issue
-                // setTimeout(this.longPoll, 1000);
-                console.log(error);
-            });
-            */
-
-        // console.log("Attempting long polling FC!");
-        // fetch longpoll route
         var refresh_route = '/getmessageslong?max_id=';
         refresh_route += this.props.max_id;
         refresh_route += "&username=";
         refresh_route += this.props.username;
-        // console.log(refresh_route);
-        // use a callback to keep requesting new data from the server after the last set has been received
+        // use a callback to keep requesting new data from the server once the last set has been received
         this.props.handleRefresh(refresh_route, () => {
-            // console.log("^^^^^^ lol trains");
             this.longPoll();
         });
     }
 
-    componentDidMount() {
-        if (this.props.refresh_mode === 0) {
-            /*
-            this.refresh_interval = setInterval(
-                () => this.refresh(),
-                this.props.refresh_rate
-            );
-            */
-            setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
-        } else if (this.props.refresh_mode === 1) {
-            // console.log("Component mounted, set to long polling though");
-        }
-    }
-
     deprecated_refresh_timeout() {
-        // console.log("Refresh! Rate: " + this.props.refresh_rate);
         this.refresh_DDOS();
         if (this.props.refresh_mode === 0) {
             setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
         }
     }
 
-    /*
-    componentWillUnmount() {
-        clearInterval(this.refresh_interval);
+    // Rapid short horrible polling
+    refresh_DDOS() {
+        // Don't fetch messages if not logged in
+        if (!this.props.logged_in) {
+            return;
+        }
+        // fetch users and fetch messages race
+        this.props.handleFetchUsers();
+        var refresh_route = '/getmessages?max_id=';
+        refresh_route += this.props.max_id;
+        refresh_route += "&username=";
+        refresh_route += this.props.username;
+        this.props.handle_refresh_DDOS(refresh_route);
     }
-    */
 
-    /*
-    componentWillUpdate() {
-        // console.log("~~~~~~~~New state or props!");
+    // = = = = = = = = = = = = = react life cycle methos = = = = = = = = = = = = = 
+
+    componentDidMount() {
+        console.log("component mounted!");
+        if (this.props.logged_in === true && this.props.username != false) {
+            if (this.props.refresh_mode === 1) {
+                console.log("Mounted & started long polling refresh");
+                this.longPoll();
+            }
+            else if (this.props.refresh_mode === 0) {
+                setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
+                console.log("Mounted & started DDOS refresh");
+            }
+        }
     }
-    */
 
-    // most logic handled here, as props typically reflect state update in the redux store
+    // Chat logic handled here, as props typically reflect state update in the redux store
+    // TODO: Handle turning on chat refresh if a user arrives via a page re-load, sessionStorage, etc.
     componentWillReceiveProps(nextProps) {
-        // console.log("~~~~~~~~New props!");
-        // console.log(this.props);
-        // console.log(nextProps);
-        // this.props.handleFetchUsers();
         // handle a prop change from DDOS to LongPoll
         if (this.props.refresh_mode === 0 && nextProps.refresh_mode === 1) {
             // sending 'true' as an argument will force long polling to start even though app is currently in DDOS mode
@@ -350,9 +171,7 @@ class ChatApp extends Component {
 
         // If a user just logged in, start the polling
         if (this.props.logged_in === false && nextProps.logged_in === true) {
-            // LongPoll mode
             if (nextProps.refresh_mode === 1) {
-                // console.log(" # @ #@ ~ ~ ~ START LONG POLL");
                 this.longPoll();
             }
             else if (nextProps.refresh_mode === 0) {
@@ -406,48 +225,11 @@ class ChatApp extends Component {
                 login_error={this.props.login_error}
             />);
     }
-
-
-    // Rapid short horrible polling
-    refresh_DDOS() {
-        // Don't fetch messages if not logged in
-        if (!this.props.logged_in) {
-            // console.log("Not logged in; not fetching getting data");
-            //console.log(this.props.logged_in);
-            return;
-        }
-        this.props.handleFetchUsers();
-
-        //console.log("Tick...");
-        // get recipe data from the server asynchronously, state will refresh when it lands
-        var refresh_route = '/getmessages?max_id=';
-        refresh_route += this.props.max_id;
-        refresh_route += "&username=";
-        refresh_route += this.props.username;
-        // console.log(refresh_route);
-        this.props.handle_refresh_DDOS(refresh_route);
-
-        // DEPRECATED
-        /*
-        fetch('/getusers')
-            .then(res => {
-                if (res.ok) {
-                    return res.json()
-                } else { throw Error(res.statusText) }
-            })
-            //.then(res => { console.log(res); this.setState({ data: res }) })
-            .then(res => {
-                this.setState({ users: res });
-            }).catch(error => console.log(error));
-            */
-    }
 }
 
-// return Object.assign({}, state, { username: action.username, logged_in: true, max_id: 0, login_error: false });
-
+//  = = = = = = = = = = = = = redux connection code = = = = = = = = = = = = = 
 
 function mapStateToProps(state) {
-    // console.log("ChatApp mapping state to props...");
     return {
         refresh_rate: state.refresh_rate,
         refresh_mode: state.refresh_mode,
@@ -464,8 +246,6 @@ function mapStateToProps(state) {
 const mapDispatchToProps = dispatch => {
     return {
         handleFetchUsers: () => {
-            // console.log("HANDLING FETCHED USERS ~~@~@~@~@~@");
-            // First action, alerting that the user fetch asyny has begun
             dispatch(fetchUsers());
             fetch('/getusers')
                 .then(res => {
@@ -475,25 +255,18 @@ const mapDispatchToProps = dispatch => {
                         throw Error(res.statusText)
                     }
                 })
-                //.then(res => { console.log(res); this.setState({ data: res }) })
                 .then(res => {
-                    // console.log("@~@~@~@~@~@ Request received! @~@~@~@~@~@");
-                    // console.log(res);
                     dispatch(updateUsers(res, false, "Users retrieved succesfully"));
-
                 }).catch(error => {
                     console.log(error);
                     dispatch(updateUsers(false, true, "Error retrieving user list"));
                 });
-
         },
         handleBlankUsername: () => {
             dispatch(loginFail('', "Must enter a username"));
         },
         handleLogin: (username) => {
             console.log(`login for ${username} requested!`);
-            // pre-ES6 equivalent username: username version below 
-            // fetch('/login', { method: "POST", body: JSON.stringify({ username: username }) })
             dispatch(loginUser(username));
             fetch('/login', { method: "POST", body: JSON.stringify({ username }) })
                 .then(res => {
@@ -503,20 +276,15 @@ const mapDispatchToProps = dispatch => {
                 }
                 )
                 .then(res => {
-                    // if (!res){ return false}
                     if (res.duplicate === false) {
-                        // this.setState({ username: username, logged_in: true, max_id: 0, login_error: false, nameInput: '' });
-                        // this.longPoll();
                         dispatch(loginComplete(username));
                     } else {
-                        // this.setState({ login_error: 'Username already taken', nameInput: '' });
                         dispatch(loginFail(username, "Username already taken"));
                     }
                 }).catch(error => console.log(error));
         },
         handleLogout: (username) => {
             console.log(`logOUT for ${username} requested!`);
-            // Send logout to the server
             fetch('/logout', { method: "POST", body: JSON.stringify({ username: username }) })
                 .then(res => {
                     if (res.ok) {
@@ -524,32 +292,21 @@ const mapDispatchToProps = dispatch => {
                         return res.json();
                     } else { throw Error(res.statusText) }
                 }).catch(error => console.log(error));
-            // this is race conditiony right now
-            // dispatch(logoutUser(username));
         },
         handleRefresh: (refresh_route, callback) => {
-            dispatch(httpCounter());            
+            dispatch(httpCounter());
             fetch(refresh_route)
                 .then(res => {
                     if (res.ok) {
                         return res.json();
                     } else {
-                        console.log("Server is broken");
+                        console.log("Server is broken.");
                         throw Error(res.statusText);
                     }
                 })
                 .then(res => {
-                    // console.log("Refresh server response:");
-                    // console.log(res);
-                    //console.log("Received a longpoll response!");
-                    //console.log(res);
-                    // if the logout command was send, logout
-                    // TODO: Figure out why this would happen and do something
+                    // if the server resoponds with a logout command, logout
                     if (res.logout) {
-                        //console.log("ERROR: LOGOUT received in refresh ? ? ? ? Eric what did you do ? ? ? ? ");
-                        //this.setState({logged_in: false, username: false, max_id: 0});
-                        // this.setState({ login_error: "You have logged out" });
-                        // this.handleLogout();
                         fetch('/logout', { method: "POST", body: JSON.stringify({ username: res.username }) })
                             .then(res => {
                                 if (res.ok) {
@@ -560,8 +317,7 @@ const mapDispatchToProps = dispatch => {
                             }).catch(error => console.log(error));
                         return;
                     }
-
-                    // If the response is an update
+                    // If the server responds with an update
                     if (res.update) {
                         var max_id;
                         if (res.rows.length > 0) {
@@ -569,39 +325,28 @@ const mapDispatchToProps = dispatch => {
                         } else {
                             max_id = 0;
                         }
-                        // this.setState({ messages: res.rows.reverse(), max_id: max_id });
                         dispatch(refreshMessages(res.rows.reverse(), max_id));
                     }
-
+                    // either way, begin the next long polling session
                     callback();
-
-                    // TODO: DO YOU NEED THIS?
-                    // test code only
-                    //this.setState({ max_id: res.max_id });
-
-                    // TODO: Figure out how to get long polling moving again?
-                    // setTimeout(this.longPoll, this.props.refresh_rate);
                 })
                 .catch(error => {
-                    // Try again since there's likely a connection issue
-                    console.log("Long poll error...");
-                    // setTimeout(this.longPoll, 1000);
-                    // TODO: Get long polling to work again
                     console.log(error);
+                    // if there was an error, still execute the callback and try long polling again
+                    callback();                    
                 });
         },
         handleClearMessages: () => {
             fetch('/clearhistory')
                 .then(res => {
                     if (res.ok) {
-                        //this.setState({ max_id: 0 })
                         dispatch(clearMessages());
                     }
                     else { throw Error(res.statusText) }
                 }).catch(error => console.log(error));
         },
         handleClearUsers: () => {
-            dispatch(clearUsers());            
+            dispatch(clearUsers());
             fetch('/clearusers')
                 .then(res => {
                     if (!res.ok) {
@@ -610,7 +355,7 @@ const mapDispatchToProps = dispatch => {
                 }).catch(error => console.log(error));
         },
         handle_refresh_DDOS: (refresh_route) => {
-            dispatch(httpCounter());            
+            dispatch(httpCounter());
             fetch(refresh_route)
                 .then(res => {
                     if (res.ok) {
@@ -618,16 +363,10 @@ const mapDispatchToProps = dispatch => {
                     } else { throw Error(res.statusText) }
                 }
                 )
-                //.then(res => { console.log(res); this.setState({ data: res }) })
                 .then(res => {
-                    // console.log("refresh response object:");
-                    // console.log(res);
                     // if the logout command was send, logout
                     if (res.logout) {
                         console.log("Logout command received in DDOS mode!");
-                        //this.setState({logged_in: false, username: false, max_id: 0});
-                        // this.setState({ login_error: "You have been Logged out." });
-                        // this.handleLogout();
                         fetch('/logout', { method: "POST", body: JSON.stringify({ username: res.username }) })
                             .then(res => {
                                 if (res.ok) {
@@ -638,8 +377,6 @@ const mapDispatchToProps = dispatch => {
                             }).catch(error => console.log(error));
                         return;
                     }
-
-                    // If there are new messages, add them to React's state
                     if (res.update) {
                         var max_id;
                         if (res.rows.length > 0) {
@@ -647,13 +384,10 @@ const mapDispatchToProps = dispatch => {
                         } else {
                             max_id = 0;
                         }
-                        // this.setState({ messages: res.rows.reverse(), max_id: max_id });
                         dispatch(refreshMessages(res.rows.reverse(), max_id));
                     }
                 }).catch(error => console.log(error));
-            //.then(() => console.log(this.state));
         }
-
     }
 }
 
