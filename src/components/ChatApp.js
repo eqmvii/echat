@@ -2,6 +2,7 @@
 /*
 Add back session storage functionality
 Add more unit tests for redux elements
+BUG: Toggling causes too many long poll calls to stack up
 */
 
 import React, { Component } from 'react';
@@ -140,8 +141,7 @@ class ChatApp extends Component {
     // = = = = = = = = = = = = = react life cycle methos = = = = = = = = = = = = = 
 
     componentDidMount() {
-        console.log("component mounted!");
-        if (this.props.logged_in === true && this.props.username != false) {
+        if (this.props.logged_in === true && this.props.username !== false) {
             if (this.props.refresh_mode === 1) {
                 console.log("Mounted & started long polling refresh");
                 this.longPoll();
@@ -178,7 +178,6 @@ class ChatApp extends Component {
                 setTimeout(this.deprecated_refresh_timeout, this.props.refresh_rate);
             }
         }
-
     }
 
     render() {

@@ -1,88 +1,50 @@
-/*
-let nextTodoId = 0
-export const addTodo = text => {
-  return {
-    type: 'ADD_TODO',
-    id: nextTodoId++,
-    text
-  }
-}
-
-export const setVisibilityFilter = filter => {
-  return {
-    type: 'SET_VISIBILITY_FILTER',
-    filter
-  }
-}
-
-export const toggleTodo = id => {
-  return {
-    type: 'TOGGLE_TODO',
-    id
-  }
-}
-*/
-
-export const TEST_COUNTER_UP = 'TEST_COUNTER_UP';
-export const TEST_COUNTER_DOWN = 'TEST_COUNTER_DOWN';
-export const FASTER_REFRESH = 'FASTER_REFRESH';
-export const SLOWER_REFRESH = 'SLOWER_REFRESH';
-export const HTTP_TOGGLE = 'HTTP_TOGGLE';
-export const UPDATE_USER_LIST = 'UPDATE_USER_LIST';
-export const FETCH_USERS = 'FETCH_USERS';
-export const TOGGLE_DEBUG_MODE = 'TOGGLE_DEBUG_MODE';
-export const LOGIN = 'LOGIN';
-export const LOGOUT = 'LOGOUT';
-export const REFRESH = 'REFRESH';
-export const HTTP_COUNTER_UP = 'HTTP_COUNTER_UP';
-export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
-export const CLEAR_USERS = 'CLEAR_USERS';
+import * as types from '../constants/actionTypes.js';
 
 export const testCounterUp = () => {
   return {
-    type: TEST_COUNTER_UP
+    type: types.TEST_COUNTER_UP
   }
 }
 
 export const testCounterDown = () => {
   return {
-    type: TEST_COUNTER_DOWN
+    type: types.TEST_COUNTER_DOWN
   }
 }
 
 export const fasterRefresh = () => {
   return {
-    type: FASTER_REFRESH
+    type: types.FASTER_REFRESH
   }
 }
 
 export const slowerRefresh = () => {
   return {
-    type: SLOWER_REFRESH
+    type: types.SLOWER_REFRESH
   }
 }
 
 export const toggleMode = () => {
   return {
-    type: HTTP_TOGGLE
+    type: types.HTTP_TOGGLE
   }
 }
 
 export const httpCounter = () => {
   return {
-    type: HTTP_COUNTER_UP
+    type: types.HTTP_COUNTER_UP
   }
 }
 
 export const clearMessages = () => {
   return {
-    type: CLEAR_MESSAGES
+    type: types.CLEAR_MESSAGES
   }
 }
 
 export const updateUsers = (userList, error, error_message) => {
   return {
-    type: UPDATE_USER_LIST,
+    type: types.UPDATE_USER_LIST,
     error: error,
     error_message: error_message,
     payload: userList
@@ -91,19 +53,19 @@ export const updateUsers = (userList, error, error_message) => {
 
 export const fetchUsers = () => {
   return {
-    type: FETCH_USERS
+    type: types.FETCH_USERS
   }
 }
 
 export const toggleDebug = () => {
   return {
-    type: TOGGLE_DEBUG_MODE
+    type: types.TOGGLE_DEBUG_MODE
   }
 }
 
 export const loginUser = (username) => {
   return {
-    type: LOGIN,
+    type: types.LOGIN,
     status: "Attempting...",
     username: username,
     error: false,
@@ -113,7 +75,7 @@ export const loginUser = (username) => {
 
 export const loginComplete = (username) => {
   return {
-    type: LOGIN,
+    type: types.LOGIN,
     status: "Success!",
     username: username,
     error: false,
@@ -123,7 +85,7 @@ export const loginComplete = (username) => {
 
 export const loginFail = (username, message) => {
   return {
-    type: LOGIN,
+    type: types.LOGIN,
     status: message,
     username: username,
     error: true, 
@@ -133,14 +95,14 @@ export const loginFail = (username, message) => {
 
 export const logoutUser = (username) => {
   return {
-    type: LOGOUT,
+    type: types.LOGOUT,
     username: username,
   }
 }
 
 export const refreshMessages = (messages, max_id) => {
   return {
-    type: REFRESH,
+    type: types.REFRESH,
     messages: messages,
     max_id: max_id
   }
@@ -148,6 +110,6 @@ export const refreshMessages = (messages, max_id) => {
 
 export const clearUsers = () => {
   return {
-    type: CLEAR_USERS
+    type: types.CLEAR_USERS
   }
 }

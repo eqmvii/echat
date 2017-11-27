@@ -1,6 +1,6 @@
 // default state that the echat is initialized with, and also used for testing
 
-let timestamp = new Date();
+// let timestamp = new Date();
 
 export default {
     max_messages: 14,

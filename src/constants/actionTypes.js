@@ -1,0 +1,14 @@
+export const TEST_COUNTER_UP = 'TEST_COUNTER_UP';
+export const TEST_COUNTER_DOWN = 'TEST_COUNTER_DOWN';
+export const FASTER_REFRESH = 'FASTER_REFRESH';
+export const SLOWER_REFRESH = 'SLOWER_REFRESH';
+export const HTTP_TOGGLE = 'HTTP_TOGGLE';
+export const UPDATE_USER_LIST = 'UPDATE_USER_LIST';
+export const FETCH_USERS = 'FETCH_USERS';
+export const TOGGLE_DEBUG_MODE = 'TOGGLE_DEBUG_MODE';
+export const LOGIN = 'LOGIN';
+export const LOGOUT = 'LOGOUT';
+export const REFRESH = 'REFRESH';
+export const HTTP_COUNTER_UP = 'HTTP_COUNTER_UP';
+export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
+export const CLEAR_USERS = 'CLEAR_USERS';
