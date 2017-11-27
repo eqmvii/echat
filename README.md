@@ -16,6 +16,8 @@ npm run front -> dev server + frontend
 
 npm test -> unit tests
 
+[To dos / bugs](/todo.md)
+
 ____
 
 ## echat PostgreSQL table structure

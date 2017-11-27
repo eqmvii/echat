@@ -11,3 +11,4 @@
 * No username remembering on browser refresh
 * Make the server handle max_id tracking more elegantly
 * Long polling gets called too many times when toggling between DDOS and long polling
+* When the server disconnects, the auto-refresh is breaking or an infinite loop of some kind
