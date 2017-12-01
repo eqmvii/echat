@@ -3,6 +3,11 @@
 // TODO: Investigate using sessions for logging in (maybe for the next app?)
 // TODO: Better logic for incrementing server_max_id
 
+// TODO: 
+// The REST-fullyness of the API needs work. 
+// Most routes were hacked together for quick testing
+// Needs to be refactored to be less terrible
+
 const express = require('express')
 const app = express()
 const { Client } = require('pg')
@@ -139,6 +144,8 @@ app.get('/test', function (req, res) {
     });
 });
 
+// TODO: Make this a DELETE route 
+// TODO: Why was this ever a get route? C'mon Eric
 // Delete all messages in the table
 app.get('/clearhistory', function (req, res) {
     console.log("clear chat history endpoint hit");
@@ -162,6 +169,7 @@ app.get('/clearhistory', function (req, res) {
     });
 });
 
+// TODO: Make this a DELETE route and integrate with other routes
 // Delete all users in the table
 app.get('/clearusers', function (req, res) {
     console.log("clear users table endpoint hit");
@@ -180,6 +188,8 @@ app.get('/clearusers', function (req, res) {
     });
 });
 
+// TODO: Collapse into one messages route
+// DEPRECATED - DDOS mode
 // Auto-refresh in DDOS mode
 app.get('/getmessages', function (req, res) {
     var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id, username: req.query.username };
@@ -224,6 +234,7 @@ app.get('/getmessages', function (req, res) {
     })
 });
 
+// TODO: Collapse into one messages route with other RESTful endpoints
 // Auto-refresh in long polling mode
 app.get('/getmessageslong', function (req, res) {
     var counter = 0;
@@ -369,6 +380,8 @@ app.post('/login', function (req, res) {
     });
 });
 
+// TODO: Add login GET route
+
 // post message endpoint
 app.post('/postmessage', function (req, res) {
 
@@ -407,6 +420,8 @@ app.post('/postmessage', function (req, res) {
     });
 });
 
+
+// function, not a route. Refactor.
 function login_test(username) {
     console.log("Login test called for " + username);
     var name_check_query_string = "SELECT * FROM echat_users WHERE username = $1";
