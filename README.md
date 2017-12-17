@@ -2,6 +2,8 @@
 
 A live chat application allowing multiple users to communicate simultaneously. Built with React, Redux, Express, PostgreSQL and deployed to Heroku.
 
+echat currently supports 5 simulatneous users at most
+
 echat is deployed to https://eqmvii-echat.herokuapp.com
 
 Unit tests in jest via the /src/App.test.js file

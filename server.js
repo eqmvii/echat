@@ -7,6 +7,7 @@
 // The REST-fullyness of the API needs work. 
 // Most routes were hacked together for quick testing
 // Needs to be refactored to be less terrible
+// Investigate 5-users at once issue (maximum open HTTP requests?)
 
 const express = require('express')
 const app = express()
@@ -144,7 +145,7 @@ app.get('/test', function (req, res) {
     });
 });
 
-// TODO: Make this a DELETE route 
+// TODO: Make this a DELETE route on messages
 // TODO: Why was this ever a get route? C'mon Eric
 // Delete all messages in the table
 app.get('/clearhistory', function (req, res) {
