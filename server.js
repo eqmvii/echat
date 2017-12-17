@@ -145,10 +145,8 @@ app.get('/test', function (req, res) {
     });
 });
 
-// TODO: Make this a DELETE route on messages
-// TODO: Why was this ever a get route? C'mon Eric
 // Delete all messages in the table
-app.get('/clearhistory', function (req, res) {
+app.delete('/messages', function (req, res) {
     console.log("clear chat history endpoint hit");
     client.query('DELETE FROM echat_messages;', (err, response) => {
         if (err) throw err;
@@ -192,7 +190,7 @@ app.delete('/users', function (req, res) {
 // TODO: Collapse into one messages route
 // DEPRECATED - DDOS mode
 // Auto-refresh in DDOS mode
-app.get('/getmessages', function (req, res) {
+app.get('/messagesDeprecated', function (req, res) {
     var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id, username: req.query.username };
     // console.log("Get messages endpoint hit");
     // console.log(req.query);
@@ -235,9 +233,8 @@ app.get('/getmessages', function (req, res) {
     })
 });
 
-// TODO: Collapse into one messages route with other RESTful endpoints
 // Auto-refresh in long polling mode
-app.get('/getmessageslong', function (req, res) {
+app.get('/messages', function (req, res) {
     var counter = 0;
     var get_messages_response_object = { logout: false, rows: [], update: false, max_id: server_max_id, username: req.query.username };
     // console.log("Get messages endpoint hit");
@@ -320,7 +317,7 @@ app.get('/getmessageslong', function (req, res) {
 });
 
 // API endpoint for testing
-app.get('/getusers', function (req, res) {
+app.get('/users', function (req, res) {
     // console.log("Get messages endpoint hit");
     client.query('SELECT * FROM echat_users ORDER BY username', (err, response) => {
         if (err) throw err;
@@ -381,10 +378,8 @@ app.post('/login', function (req, res) {
     });
 });
 
-// TODO: Add login GET route
-
 // post message endpoint
-app.post('/postmessage', function (req, res) {
+app.post('/messages', function (req, res) {
 
     console.log("Add message requested");
     // clear the old user table   
@@ -422,7 +417,7 @@ app.post('/postmessage', function (req, res) {
 });
 
 
-// function, not a route. Refactor.
+// function, not a route. TODO: Refactor.
 function login_test(username) {
     console.log("Login test called for " + username);
     var name_check_query_string = "SELECT * FROM echat_users WHERE username = $1";
@@ -460,7 +455,8 @@ function activity_update(username) {
     client.query(query_string, values);
 }
 
-// post message endpoint
+// Logout endpoint, post because it comes with the username to logout.
+// TODO: Consider HTTP method. Post is probably more secure here.
 app.post('/logout', function (req, res) {
     console.log("Logout requested");
     // clear the old user table   

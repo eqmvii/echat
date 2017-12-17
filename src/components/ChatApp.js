@@ -84,7 +84,7 @@ class ChatApp extends Component {
         let username = this.props.username;
 
         // send posted message info to the backend server
-        fetch('/postmessage', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
+        fetch('/messages', { method: "POST", body: JSON.stringify({ message: message, username: username }) })
             .then(res => {
                 if (res.ok) {
                     this.setState({ chatInput: '' });
@@ -106,7 +106,7 @@ class ChatApp extends Component {
 
         // fetching users and fetching messages race
         this.props.handleFetchUsers();
-        var refresh_route = '/getmessageslong?max_id=';
+        var refresh_route = '/messages?max_id=';
         refresh_route += this.props.max_id;
         refresh_route += "&username=";
         refresh_route += this.props.username;
@@ -131,14 +131,14 @@ class ChatApp extends Component {
         }
         // fetch users and fetch messages race
         this.props.handleFetchUsers();
-        var refresh_route = '/getmessages?max_id=';
+        var refresh_route = '/messagesDeprecated?max_id=';
         refresh_route += this.props.max_id;
         refresh_route += "&username=";
         refresh_route += this.props.username;
         this.props.handle_refresh_DDOS(refresh_route);
     }
 
-    // = = = = = = = = = = = = = react life cycle methos = = = = = = = = = = = = = 
+    // = = = = = = = = = = = = = react life cycle methods = = = = = = = = = = = = = 
 
     componentDidMount() {
         if (this.props.logged_in === true && this.props.username !== false) {
@@ -246,7 +246,7 @@ const mapDispatchToProps = dispatch => {
     return {
         handleFetchUsers: () => {
             dispatch(fetchUsers());
-            fetch('/getusers')
+            fetch('/users')
                 .then(res => {
                     if (res.ok) {
                         return res.json()
@@ -336,7 +336,7 @@ const mapDispatchToProps = dispatch => {
                 });
         },
         handleClearMessages: () => {
-            fetch('/clearhistory')
+            fetch('/messages', { method: "DELETE"})
                 .then(res => {
                     if (res.ok) {
                         dispatch(clearMessages());

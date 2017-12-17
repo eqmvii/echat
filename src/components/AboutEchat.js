@@ -26,10 +26,10 @@ class AboutEchat extends Component {
               <ul>
                 <li><strong>Long Polling Mode: </strong>
                   an HTTP request is sent to the server, and then the server waits to respond until there are updates to the database to report to the client. 
-                  A "no updates" response is sent after several seconds even if there is no change to the database to avoid HTTP timeout errors, particularly because of the Heroku platform.</li>
+                  A "no updates" response is sent after several seconds even if there is no change to the database to avoid HTTP timeout errors, particularly because of the Heroku platform. At most 5 concurrent users supported.</li>
                 <li><strong>DDOS Mode: </strong> 
                   a new HTTP request is sent at the refresh interval, which ranges from as fast as almost 10 times per second to as slow as roughly once every 5 seconds.
-                  This was the first way I thought about making a chat application, but (obviously) has abysmal performance and scaling implications.
+                  This was the first way I thought about making a chat application, but (obviously) has abysmal performance and scaling implications, although it does support more users than long-polling currently.
                   No points for guessing why I call it DDOS Mode.</li>
                 </ul>
                 </li>
