@@ -346,7 +346,7 @@ const mapDispatchToProps = dispatch => {
         },
         handleClearUsers: () => {
             dispatch(clearUsers());
-            fetch('/clearusers')
+            fetch('/users', { method: "DELETE"})
                 .then(res => {
                     if (!res.ok) {
                         throw Error(res.statusText)

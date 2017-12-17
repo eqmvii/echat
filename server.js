@@ -169,9 +169,8 @@ app.get('/clearhistory', function (req, res) {
     });
 });
 
-// TODO: Make this a DELETE route and integrate with other routes
-// Delete all users in the table
-app.get('/clearusers', function (req, res) {
+// Delete all users in the table; delete's the entire collection
+app.delete('/users', function (req, res) {
     console.log("clear users table endpoint hit");
     client.query('DELETE FROM echat_users;', (err, response) => {
         if (err) throw err;
@@ -182,6 +181,7 @@ app.get('/clearusers', function (req, res) {
         console.log(values);
         client.query(query_string, values)
             .then(response => {
+                // TODO: Clean up this logic
                 server_max_id += 2;
                 res.end();
             })
