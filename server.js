@@ -1,13 +1,13 @@
 // server.js - backend for echat application
 // Node.js/Express server hooked into PostgreSQL via PG
-// TODO: Investigate using sessions for logging in (maybe for the next app?)
-// TODO: Better logic for incrementing server_max_id
 
 // TODO: 
-// The REST-fullyness of the API needs work. 
+// TODO: Investigate using sessions for logging in (maybe for the next app?)
+// TODO: Better logic for incrementing server_max_id
 // Most routes were hacked together for quick testing
 // Needs to be refactored to be less terrible
 // Investigate 5-users at once issue (maximum open HTTP requests?)
+// Note: seems to be slightly different when deployed to heroku vs. when run locally
 
 const express = require('express')
 const app = express()
